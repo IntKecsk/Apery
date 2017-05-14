@@ -23,14 +23,72 @@
 
 #ifndef CELLDRAWER_H
 #define CELLDRAWER_H
-#include "rhombdrawer.h"
 
-class RhombPixmaps;
-class CellDrawer : public RhombDrawer
+#include <QObject>
+#include <QRect>
+#include "common/types.h"
+#include "dimensions.h"
+
+class QPainter;
+class RhombDrawer;
+struct tiledes;
+
+struct CellGrid
 {
 public:
-    explicit CellDrawer(RhombPixmaps* rpx, QPaintDevice *device = 0);
-    void drawCell(quint8 ci, int px, int py);
+    void update(const Vectors& vec);
+
+    QPoint xs;
+    QPoint xn;
+    QPoint xw;
+    QPoint ys;
+    QPoint yn;
+    QPoint yw;
+    QPoint os;
+};
+
+class CellBounds
+{
+public:
+    void update(const Vectors& vec);
+
+    Q_DECL_RELAXED_CONSTEXPR const QRect& getRect(quint8 ci) const
+    {
+        ci&=31;
+        return (ci<16) ? m_achir[ci>>1] : m_chir[ci-16];
+    }
+    constexpr const QRect& getRect(bool narx, bool nary) const
+    {
+        return m_wn[narx][nary];
+    }
+
+protected:
+    QRect m_achir[8];
+    QRect m_chir[16];
+    QRect m_wn[2][2];
+};
+
+class CellDrawer : public QObject
+{
+    Q_OBJECT
+public:
+    explicit CellDrawer(RhombDrawer *rdr, QObject *parent = 0);
+
+    bool ready() const;
+
+    void drawCell(QPainter& p, quint8 ci, QPoint pt, WN x, WN y);
+    QRect getRect(quint8 ci, QPoint pt, WN x, WN y);
+
+public slots:
+    void updateDim(const Vectors& vec);
+
+private:
+    void _drawCell(QPainter& p, quint8 ci, QPoint pt);
+    QPoint _getAtt(const tiledes& td);
+
+    RhombDrawer* m_rd;
+    CellGrid m_cg;
+    CellBounds m_cb;
 };
 
 #endif // CELLDRAWER_H

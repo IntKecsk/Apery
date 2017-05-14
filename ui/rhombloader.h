@@ -1,4 +1,4 @@
-﻿/************************************************************************
+/************************************************************************
 * Ths file is part of Apery, a Penrose tiling generator and cellular    *
 * automata simulator                                                    *
 *                                                                       *
@@ -21,43 +21,47 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef PTDEFS_H
-#define PTDEFS_H
+#ifndef RHOMBLOADER_H
+#define RHOMBLOADER_H
 
-//Simple vectors
-constexpr int DX = 24;
-constexpr int DY = 0;
-constexpr int XIX = 19;
-constexpr int XIY = 14;
-constexpr int YIX = XIX;
-constexpr int YIY = -XIY;
-constexpr int XOX = 7;
-constexpr int XOY = 23;
-constexpr int YOX = XOX;
-constexpr int YOY = -XOY;
+#include <QObject>
+#include <memory>
 
-//Narrow column & hor. attachment #2
-constexpr int XNX = XIX+XOX;
-constexpr int XNY = XIY+XOY;
-//Hor. attachment #1
-constexpr int XSX = DX-YOX;
-constexpr int XSY = DY-YOY;
-//Wide column
-constexpr int XWX = XNX+XSX;
-constexpr int XWY = XNY+XSY;
+#include "common/types.h"
+#include "dimensions.h"
 
-//Narrow row & vert. attachment #2
-constexpr int YNX = YIX+YOX;
-constexpr int YNY = YIY+YOY;
-//Vert attachment #1
-constexpr int YSX = DX-XOX;
-constexpr int YSY = DY-XOY;
-//Wide row
-constexpr int YWX = YNX+YSX;
-constexpr int YWY = YNY+YSY;
+template<typename TR>
+struct RhombTraits
+{
+    virtual TR get(uint8 ori, uint8 nmn) const = 0;
+};
 
-//Orientation correction
-constexpr int OSX = XIX+YIX-DX;
-constexpr int OSY = XIY+YIY-DY;
+extern template struct RhombTraits<QRect>;
+extern template struct RhombTraits<QBitmap>;
+extern template struct RhombTraits<QPixmap>;
 
-#endif // PTDEFS_H
+typedef std::shared_ptr<RhombTraits<QRect>> RhombDim;
+typedef std::shared_ptr<RhombTraits<QBitmap>> RhombBmp;
+typedef std::shared_ptr<RhombTraits<QPixmap>> RhombPix;
+
+class RhombLoader : public QObject
+{
+    Q_OBJECT
+public:
+    explicit RhombLoader(QObject *parent = 0);
+    bool load(const QPixmap& src);
+
+signals:
+    void loaded(const Vectors& vec, RhombDim dim, RhombBmp bmp, RhombPix pix);
+
+private:
+    Vectors m_vec;
+    RhombDim m_dim;
+    RhombBmp m_bmp;
+
+    QSize m_ssz;
+    QRect m_wsrc[10];
+    QRect m_nsrc[10];
+};
+
+#endif // RHOMBLOADER_H

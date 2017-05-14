@@ -35,14 +35,30 @@ public:
     explicit AperyWindow(QWidget *parent = 0);
 public slots:
     void fileOpen();
+    void fileOpenRecent();
 protected:
     virtual void closeEvent(QCloseEvent *event) override;
 private:
     AperyVPort* m_avp;
     QString m_fddir;
+
+    QMenu* m_file;
+    QHash<QString, QAction*> m_rfactions;
+    QAction* m_rffirst;
+    int m_rfidx;
+    QAction* m_rfsep;
+
+    enum {RECENT_FILE_LIST_SIZE = 5};
+
     void _setupMenu();
     void _readSettings();
     void _writeSettings();
+
+    void _addRecent(const QString &s);
+    void _delRecent(QAction *ac, const QString &s);
+    void _upRecent(QAction *ac);
+
+    void addAction();
 };
 
 #endif // APERYWINDOW_H

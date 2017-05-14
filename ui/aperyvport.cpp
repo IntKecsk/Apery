@@ -25,19 +25,28 @@
 #include <QList>
 #include <QPixmap>
 #include <QMouseEvent>
+#include <QPainter>
+
 #include "aperyvport.h"
-#include "ptdefs.h"
+#include "rhombdrawer.h"
 #include "celldrawer.h"
-#include "rhombpixmaps.h"
+#include "dimensions.h"
+#include "engine/universe.h"
 
 #include <QDebug>
 #include <QFile>
 
 AperyVPort::AperyVPort(QWidget *parent)
     : QWidget(parent),  //QOpenGLWidget(parent)
-      ox(400), oy(400), dwx(0), dnx(0), dwy(0), dny(0), m_drag(false)
+      o(400, 400), dwx(0), dnx(0), dwy(0), dny(0), m_drag(false)
 {
-    m_rpx = new RhombPixmaps(this);
+    m_rl = new RhombLoader(this);
+    RhombDrawer* rd = new RhombDrawer();
+    connect(m_rl, SIGNAL(loaded(Vectors,RhombDim,RhombBmp,RhombPix)),
+            rd, SLOT(updatePixmaps(Vectors,RhombDim,RhombBmp,RhombPix)));
+
+    m_cd = new CellDrawer(rd, this);
+
     m_univ = new Universe(4, 0, 0, 2);
     if(!m_univ->isValid())
         return;
@@ -46,10 +55,14 @@ AperyVPort::AperyVPort(QWidget *parent)
             m_univ->resolveCell(i, j);
 }
 
-void AperyVPort::loadImage(const QString &file)
+bool AperyVPort::loadImage(const QString &file)
 {
     QPixmap px(file);
-    m_rpx->loadPixmaps(px);
+    if(px.isNull())
+        return false;
+    m_rl->load(px);
+    update();
+    return true;
 }
 
 AperyVPort::~AperyVPort()
@@ -73,64 +86,66 @@ void AperyVPort::paintGL()
     glClear(GL_COLOR_BUFFER_BIT);
 }*/
 
-void AperyVPort::drawCellRC(CellDrawer& cd, quint8 ci, WN x, WN y)
-{
-    qint32 wx=x.w-dwx;
-    qint32 nx=x.n-dnx;
-    qint32 wy=y.w-dwy;
-    qint32 ny=y.n-dny;
-    cd.drawCell(ci, wx*XWX+nx*XNX+wy*YWX+ny*YNX, wx*XWY+nx*XNY+wy*YWY+ny*YNY);
-}
-
 void AperyVPort::paintEvent(QPaintEvent *e)
 {
     Q_UNUSED(e);
-    if(!m_univ->isValid() || !m_rpx->loaded())
+    if(!m_univ->isValid() || !m_cd->ready())
         return;
-    CellDrawer cd(m_rpx, this);
-    cd.translate(ox, oy);
+
+    QPainter p(this);
+    QRect vp = rect();
     //cd.scale(8, 8);
     Range rx = m_univ->rangeX();
-    //qDebug() << rx.b << rx.e;
     Range ry = m_univ->rangeY();
-    for(int x=rx.b; x<rx.e; x++)
+
+    for(int x: rx)
     {
         WN wnx = m_univ->wnX(x);
-        for(int y=ry.b; y<ry.e; y++)
+        for(int y: ry)
         {
+            //if(x != y + 1) continue;
             WN wny = m_univ->wnY(y);
             quint8 ci = m_univ->at(x, y);
             if(ci)
             {
-                drawCellRC(cd, ci, wnx, wny);
+                //const DimCellGrid& dcg = m_rd->getCellGrid();
+                //QPoint sup = dcg.xw*wnx.w + dcg.xn*wnx.n + dcg.yw*wny.w + dcg.yn*wny.n + o;
+                if(m_cd->getRect(ci, o, wnx, wny).intersects(vp))
+                    m_cd->drawCell(p, ci, o, wnx, wny);
+                //p.setPen(QColor(255,0,0));
+                //p.drawLine(vp.left(), sup.y(), vp.right(), sup.y());
             }
         }
     }
+    /*const DimCellBounds& dcb = m_rd->getCellBounds();
+    const DimCellGrid& dcg = m_rd->getCellGrid();
+    //QPoint dist = dcg.xn+dcg.xw+dcg.yn+dcg.yw;
+    for(int i: {4, 6, 8, 10, 12, 14})
+    {
+        p.drawRect(dcb.getRect(i).translated(o)); //, QColor(192, 128, 128));
+        //m_cd->drawCell(p, 4*i+3, o, WN{0,0}, WN{0,0});
+    }*/
 }
 
 void AperyVPort::mousePressEvent(QMouseEvent *e)
 {
     if(e->button()!=Qt::LeftButton) return e->ignore();
     m_drag = true;
-    drag_start_x = e->x();
-    drag_start_y = e->y();
-    orig_ox = ox;
-    orig_oy = oy;
+    drag_start = e->pos();
+    orig_o = o;
 }
 
 void AperyVPort::mouseMoveEvent(QMouseEvent *e)
 {
     if(!(m_drag && (e->buttons()&Qt::LeftButton))) return e->ignore();
-    ox = orig_ox + (e->x()-drag_start_x);
-    oy = orig_oy + (e->y()-drag_start_y);
+    o = orig_o + (e->pos()-drag_start);
     update();
 }
 
 void AperyVPort::mouseReleaseEvent(QMouseEvent *e)
 {
     if(e->button()!=Qt::LeftButton) return e->ignore();
-    ox = orig_ox + (e->x()-drag_start_x);
-    oy = orig_oy + (e->y()-drag_start_y);
+    o = orig_o + (e->pos()-drag_start);
     m_drag = false;
     update();
 }

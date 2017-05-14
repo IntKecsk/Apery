@@ -23,97 +23,111 @@
 
 #include "cells.h"
 
-constexpr tiledes NC = {0, 0, 0, false};
-constexpr bool WIDE = false;
-constexpr bool NARROW = true;
+constexpr tiledes NC = {0, 0, 0, 0};
+
+namespace Tile
+{
+
+enum Type
+{
+    M = 0,
+    KL = 1,
+    KJ = 2,
+    Q = 3,
+    k = 4,
+    qq = 5,
+    qp = 6
+};
+
+}
 
 const gscell_def gcd[8] = {
     {9, 2, 2, {
-        {5, 0, 0, WIDE},
-        {3, 0, 0, WIDE},
-        {0, 0, 0, NARROW},
-        {7, 0, 0, WIDE},
-        {0, 2, 2, WIDE},
-        {2, 2, 2, WIDE},
-        {4, 2, 2, WIDE},
-        {6, 2, 2, WIDE},
-        {8, 2, 2, WIDE}
+        {5, 0, 0, Tile::M},
+        {3, 0, 0, Tile::KJ},
+        {0, 0, 0, Tile::k},
+        {7, 0, 0, Tile::KL},
+        {0, 2, 2, Tile::M},
+        {2, 2, 2, Tile::M},
+        {4, 2, 2, Tile::M},
+        {6, 2, 2, Tile::M},
+        {8, 2, 2, Tile::M}
     }}, //N
     {9, 3, 3, {
-        {5, 0, 0, WIDE},
-        {2, 0, 0, NARROW},
-        {8, 0, 0, NARROW},
-        {2, 2, 0, WIDE},
-        {8, 0, 2, WIDE},
-        {4, 3, 2, WIDE},
-        {1, 3, 2, NARROW},
-        {6, 2, 3, WIDE},
-        {9, 2, 3, NARROW}
+        {5, 0, 0, Tile::Q},
+        {2, 0, 0, Tile::qp},
+        {8, 0, 0, Tile::qq},
+        {2, 2, 0, Tile::KJ},
+        {8, 0, 2, Tile::KL},
+        {4, 3, 2, Tile::Q},
+        {1, 3, 2, Tile::qq},
+        {6, 2, 3, Tile::Q},
+        {9, 2, 3, Tile::qq}
     }}, //W
     {8, 3, 3, {
-        {2, 2, 0, WIDE},
-        {9, 2, 0, NARROW},
-        {8, 0, 2, WIDE},
-        {1, 0, 2, NARROW},
-        {4, 3, 2, WIDE},
-        {1, 3, 2, NARROW},
-        {6, 2, 3, WIDE},
-        {9, 2, 3, NARROW},
+        {2, 2, 0, Tile::Q},
+        {9, 2, 0, Tile::qp},
+        {8, 0, 2, Tile::Q},
+        {1, 0, 2, Tile::qq},
+        {4, 3, 2, Tile::Q},
+        {1, 3, 2, Tile::qp},
+        {6, 2, 3, Tile::Q},
+        {9, 2, 3, Tile::qq},
         NC
     }}, //V
     {8, 3, 3, {
-         {0, 1, 0, NARROW},
-         {0, 0, 1, NARROW},
-         {6, 3, 2, WIDE},
-         {4, 3, 2, WIDE},
-         {1, 3, 2, NARROW},
-         {4, 2, 3, WIDE},
-         {6, 2, 3, WIDE},
-         {9, 2, 3, NARROW},
-         NC
+        {0, 1, 0, Tile::qq},
+        {0, 0, 1, Tile::qp},
+        {6, 3, 2, Tile::M},
+        {4, 3, 2, Tile::KJ},
+        {1, 3, 2, Tile::k},
+        {4, 2, 3, Tile::M},
+        {6, 2, 3, Tile::KL},
+        {9, 2, 3, Tile::k},
+        NC
     }}, //O
     {9, 3, 2, {
-         {5, 0, 0, WIDE},
-         {2, 0, 0, NARROW},
-         {9, 0, 0, WIDE},
-         {7, 0, 0, WIDE},
-         {3, 2, 0, NARROW},
-         {7, 1, 2, WIDE},
-         {0, 3, 2, WIDE},
-         {7, 3, 2, NARROW},
-         {3, 3, 2, NARROW}
+        {5, 0, 0, Tile::KJ},
+        {2, 0, 0, Tile::k},
+        {9, 0, 0, Tile::KL},
+        {7, 0, 0, Tile::M},
+        {3, 2, 0, Tile::qp},
+        {7, 1, 2, Tile::KJ},
+        {0, 3, 2, Tile::Q},
+        {7, 3, 2, Tile::qp},
+        {3, 3, 2, Tile::qq}
     }}, //S
     {7, 3, 2, {
-         {5, 0, 0, WIDE},
-         {2, 0, 0, NARROW},
-         {9, 0, 0, WIDE},
-         {7, 0, 0, WIDE},
-         {3, 2, 0, NARROW},
-         {7, 1, 2, WIDE},
-         {4, 1, 2, NARROW},
-         NC,
-         NC
+        {5, 0, 0, Tile::KJ},
+        {2, 0, 0, Tile::k},
+        {9, 0, 0, Tile::KL},
+        {7, 0, 0, Tile::M},
+        {3, 2, 0, Tile::qp},
+        {7, 1, 2, Tile::Q},
+        {4, 1, 2, Tile::qp},
+        NC,
+        NC
     }}, //F
     {7, 3, 2, {
-         {5, 0, 0, WIDE},
-         {3, 0, 0, WIDE},
-         {1, 0, 0, WIDE},
-         {9, 0, 0, WIDE},
-         {7, 0, 0, WIDE},
-         {3, 2, 0, NARROW},
-         {5, 2, 2, NARROW},
-         {6, 2, 2, WIDE},
-         {8, 2, 2, WIDE}
+        {5, 0, 0, Tile::M},
+        {3, 0, 0, Tile::M},
+        {1, 0, 0, Tile::M},
+        {9, 0, 0, Tile::M},
+        {7, 0, 0, Tile::M},
+        {3, 2, 0, Tile::qp},
+        {5, 2, 2, Tile::qp},
+        NC,
+        NC
     }}, //B
     {8, 3, 3, {
-         {0, 1, 0, NARROW},
-         {8, 0, 2, WIDE},
-         {1, 0, 2, NARROW},
-         {6, 3, 2, WIDE},
-         {4, 3, 2, WIDE},
-         {1, 3, 2, NARROW},
-         {6, 2, 3, WIDE},
-         {9, 2, 3, NARROW},
-         NC
+        {0, 1, 0, Tile::qq},
+        {8, 0, 2, Tile::Q},
+        {1, 0, 2, Tile::qq},
+        {6, 3, 2, Tile::M},
+        {4, 3, 2, Tile::KJ},
+        {1, 3, 2, Tile::k},
+        {6, 2, 3, Tile::Q},
+        {9, 2, 3, Tile::qq},
+        NC
     }}  //Q
 };

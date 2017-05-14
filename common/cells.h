@@ -32,7 +32,7 @@ struct tiledes
     uint8 ori; ///< Tile orientation
     uint8 att_x; ///< X attachment point within a cell
     uint8 att_y; ///< Y attachment point within a cell
-    bool narrow; ///< is a tile narrow?
+    uint8 nmn; ///< von Neumann neighbourhood type
 };
 
 /** GS-cell definition structure */

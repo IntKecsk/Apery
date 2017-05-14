@@ -40,8 +40,18 @@ struct WN
 
 struct Range
 {
+    struct iter
+    {
+        int32 i;
+        constexpr iter(int32 i_): i(i_) {}
+        iter& operator++() {i++; return *this;}
+        bool operator !=(const iter& o) const {return i != o.i;}
+        constexpr int32 operator*() const {return i;}
+    };
     int32 b;
     int32 e;
+    iter begin() const {return b;}
+    iter end() const {return e;}
 };
 
 #endif // TYPES_H

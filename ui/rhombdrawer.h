@@ -24,23 +24,78 @@
 #ifndef RHOMBDRAWER_H
 #define RHOMBDRAWER_H
 
-#include <QPainter>
-#include "common/cells.h"
+#include <QObject>
+#include <QBitmap>
 
-class RhombPixmaps;
-class RhombDrawer : public QPainter
+#include "common/cells.h"
+#include "dimensions.h"
+#include "rhombloader.h"
+
+class QPainter;
+
+class RhombDrawer : public QObject
 {
+    Q_OBJECT
 public:
-    explicit RhombDrawer(RhombPixmaps *rpx, QPaintDevice *device = 0);
+    explicit RhombDrawer(QObject *parent = 0);
     /**
      * @brief Draw a Penrose rhomb
      * @param td
      * @param px
      * @param py
      */
-    void drawRhomb(tiledes td, int px, int py);
+    void drawRhomb(QPainter& p, tiledes td, QPoint pt);
+    bool ready() const
+    {
+        return m_pix != nullptr;
+    }
+
+public slots:
+    void updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, RhombPix pix);
+
+signals:
+    void dimChanged(const Vectors& vec);
+
 private:
-    RhombPixmaps* m_rpx;
+    //RhombPixmaps* m_rpx;
+
+    /*class DimCellBoundsImpl : public DimCellBounds
+    {
+    public:
+        Q_DECL_RELAXED_CONSTEXPR DimCellBoundsImpl(const OID& oid);
+    private:
+        static oidxy s_mofs[24];
+        static oidxy s_msiz[8];
+    };*/
+
+    Vectors m_oid;
+    /*DimCellGrid m_dcg;
+    DimCellBoundsImpl m_dcb;*/
+
+    /*struct RhombDimProto
+    {
+        oidxy tpt;
+        oidxy spt;
+        oidxy siz;
+    };*/
+
+    /*struct RhombDim
+    {
+        QPoint tpt;
+        QRect src;
+        void setFromProto(const RhombDimProto& p, const Vectors& oid)
+        {
+            tpt = oid.point(p.tpt);
+            src = oid.rect(p.spt, p.siz);
+        }
+    };*/
+
+    //static RhombDimProto s_rdf[10];
+    //static RhombDimProto s_rds[10];
+    RhombDim m_dim;
+    RhombBmp m_bmp;
+    RhombPix m_pix;
+    Vectors m_vec;
 };
 
 #endif // RHOMBDRAWER_H

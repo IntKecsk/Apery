@@ -21,14 +21,143 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
+#include "rhombdrawer.h"
 #include "celldrawer.h"
 
-CellDrawer::CellDrawer(RhombPixmaps *rpx, QPaintDevice *device) : RhombDrawer(rpx, device)
+namespace
 {
+Coeffs cbAchiralProto[8] = {
+    //o   i   d   o   i
+    { 0,  0, -1, -1, -1}, //0
+    { 0,  0, -1, -1, -1}, //2
+    { 0,  0, -1, -1, -1}, //4
+    {-1,  1,  0, -1, -1}, //6
+    { 0,  1,  0, -2, -1}, //8
+    {-1,  1,  0, -2, -1}, //10
+    {-1,  2,  0, -2,  0}, //12
+    {-1,  1,  0, -2,  0}  //14
+};
 
+Coeffs cbChiralProto[16] = {
+    //o   i   d   o   i
+    { 0,  0, -1,  0, -1}, //16
+    { 0,  0, -1, -1, -1}, //17
+    { 0,  0, -1,  0, -1}, //18
+    { 0,  0, -1, -1, -1}, //19
+    { 0,  0, -1, -1, -1}, //20
+    { 0,  0, -1, -1, -1}, //21
+    { 0,  1,  0,  0, -1}, //22
+    { 0,  1,  0, -2, -1}, //23
+    { 0,  0, -1, -1, -1}, //24
+    { 0,  0, -1, -1, -1}, //25
+    {-1,  2,  0,  0, -1}, //26
+    {-1,  2,  0, -2, -1}, //27
+    { 0,  1,  0, -2, -1}, //28
+    { 0,  1,  0, -2,  0}, //29
+    {-1,  1,  0, -2,  0}, //30
+    {-1,  1,  0, -2, -1}  //31
+};
+
+Coeffs cbSizeProto[8] = {
+    {2, 4, 1, 2, 2},
+    {1, 3, 2, 2, 2},
+    {1, 2, 1, 4, 2},
+    {2, 1, 1, 4, 0},
+    {1, 4, 2, 1, 2},
+    {1, 3, 1, 2, 2},
+    {2, 2, 1, 2, 2},
+    {1, 2, 1, 4, 1}
+};
 }
 
-void CellDrawer::drawCell(quint8 ci, int px, int py)
+void CellGrid::update(const Vectors &vec)
+{
+    xs = vec.point({-1, 0, 1, 1, 0});
+    xn = vec.point({1, 1, 0, 1, 1});
+    xw = xs + xn;
+
+    ys = vec.point({-1, 0, 1, -1, 0});
+    yn = vec.point({1, 1, 0, -1, -1});
+    yw = ys + yn;
+
+    os = vec.point({0, 2, -1, 0, 0});
+}
+
+void CellBounds::update(const Vectors &vec)
+{
+    for(int i=0; i<8; i++)
+        m_achir[i] = vec.rect(cbAchiralProto[i], cbSizeProto[i>>1]);
+
+    for(int i=0; i<16; i++)
+        m_chir[i] = vec.rect(cbChiralProto[i], cbSizeProto[4+(i>>2)]);
+
+    // TODO: fill general rectangles
+}
+
+bool CellDrawer::ready() const
+{
+    return m_rd->ready();
+}
+
+CellDrawer::CellDrawer(RhombDrawer *rdr, QObject *parent): QObject(parent), m_rd(rdr)
+{
+    m_rd->setParent(this);
+    connect(m_rd, SIGNAL(dimChanged(Vectors)), this, SLOT(updateDim(Vectors)));
+}
+
+void CellDrawer::updateDim(const Vectors &vec)
+{
+    m_cg.update(vec);
+    m_cb.update(vec);
+}
+
+void CellDrawer::drawCell(QPainter& p, quint8 ci, QPoint pt, WN x, WN y)
+{
+    _drawCell(p, ci, pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
+}
+
+QRect CellDrawer::getRect(quint8 ci, QPoint pt, WN x, WN y)
+{
+    return m_cb.getRect(ci).translated(pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
+}
+
+namespace
+{
+
+uint8 nmn_reflect(uint8 in)
+{
+    return in ^ (((in + 1) & 2) ? 3 : 0);
+}
+
+} // namespace
+
+QPoint CellDrawer::_getAtt(const tiledes& td)
+{
+    QPoint pt(0, 0);
+    if(td.att_x&1)
+    {
+        pt+=m_cg.xs;
+    }
+    if(td.att_x&2)
+    {
+        pt+=m_cg.xn;
+    }
+    if(td.att_y&1)
+    {
+        pt+=m_cg.ys;
+    }
+    if(td.att_y&2)
+    {
+        pt+=m_cg.yn;
+    }
+    if((td.ori&1)^(td.nmn>>2))
+    {
+        pt+=m_cg.os;
+    }
+    return pt;
+}
+
+void CellDrawer::_drawCell(QPainter& p, quint8 ci, QPoint pt)
 {
     quint8 ct=(ci>>2)&7, co=ci&3;
     const gscell_def& c = gcd[ct];
@@ -45,23 +174,23 @@ void CellDrawer::drawCell(quint8 ci, int px, int py)
             td_trans.att_x = td_def.att_y;
             td_trans.att_y = td_def.att_x;
             td_trans.ori = (10-td_def.ori)%10;
-            td_trans.narrow = td_def.narrow;
+            td_trans.nmn = nmn_reflect(td_def.nmn);
             break;
         case 2:
             td_trans.att_x = td_def.att_x^c.width_x;
             td_trans.att_y = td_def.att_y^c.width_y;
             td_trans.ori = (td_def.ori+5)%10;
-            td_trans.narrow = td_def.narrow;
+            td_trans.nmn = td_def.nmn;
             break;
         case 3:
             td_trans.att_x = td_def.att_y^c.width_y;
             td_trans.att_y = td_def.att_x^c.width_x;
             td_trans.ori = (15-td_def.ori)%10;
-            td_trans.narrow = td_def.narrow;
+            td_trans.nmn = nmn_reflect(td_def.nmn);
             break;
         default:
-            Q_ASSERT(0);
+            Q_UNREACHABLE();
         }
-        drawRhomb(td_trans, px, py);
+        m_rd->drawRhomb(p, td_trans, pt + _getAtt(td_trans));
     }
 }

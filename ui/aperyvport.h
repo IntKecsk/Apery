@@ -27,11 +27,10 @@
 #include <QWidget>
 //#include <QOpenGLWidget>
 //#include <QOpenGLFunctions>
-#include "common/types.h"
-#include "engine/universe.h"
 
+class Universe;
 class CellDrawer;
-class RhombPixmaps;
+class RhombLoader;
 
 class AperyVPort : public QWidget //QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -39,7 +38,7 @@ class AperyVPort : public QWidget //QOpenGLWidget, protected QOpenGLFunctions
 
 public:
     AperyVPort(QWidget *parent = 0);
-    void loadImage(const QString& file);
+    bool loadImage(const QString& file);
     ~AperyVPort();
 protected:
     //virtual void initializeGL() override;
@@ -50,15 +49,16 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *e) override;
     virtual void mouseReleaseEvent(QMouseEvent *e) override;
 private:
-    RhombPixmaps* m_rpx;
     Universe* m_univ;
+    RhombLoader* m_rl;
+    CellDrawer* m_cd;
 
-    int ox, oy; //Origin coords
+    QPoint o; //Origin coords
     int dwx, dnx, dwy, dny; //WN-coordinates of the cell in the origin
-    void drawCellRC(CellDrawer &cd, quint8 ci, WN x, WN y);
 
     bool m_drag;
-    int drag_start_x, drag_start_y, orig_ox, orig_oy;
+    QPoint drag_start;
+    QPoint orig_o;
 };
 
 #endif // APERYWGT_H

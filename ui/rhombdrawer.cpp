@@ -45,26 +45,5 @@ void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, 
 
 void RhombDrawer::drawRhomb(QPainter& p, tiledes td, QPoint pt)
 {
-    /*int ax, ay, bx, by;*/ //, cx, cy;
-    //cx=xs[ori]/4;
-    //cy=ys[ori]/4;
-    /*if(skr)
-    {
-        ax = xs[(ori+8)%10];
-        ay = ys[(ori+8)%10];
-        bx = xs[(ori+2)%10];
-        by = ys[(ori+2)%10];
-    }
-    else
-    {
-        ax = xs[(ori+9)%10];
-        ay = ys[(ori+9)%10];
-        bx = xs[(ori+1)%10];
-        by = ys[(ori+1)%10];
-    }*/
-    /*drawLine(px, py, px+ax, py+ay);
-    drawLine(px+ax, py+ay, px+ax+bx, py+ay+by);
-    drawLine(px+ax+bx, py+ay+by, px+bx, py+by);
-    drawLine(px+bx, py+by, px, py);*/
     p.drawPixmap(pt + m_dim->get(td.ori, td.nmn).topLeft(), m_pix->get(td.ori, td.nmn));
 }

@@ -60,7 +60,7 @@ const gscell_def gcd[8] = {
         {2, 2, 0, Tile::KJ},
         {8, 0, 2, Tile::KL},
         {4, 3, 2, Tile::Q},
-        {1, 3, 2, Tile::qq},
+        {1, 3, 2, Tile::qp},
         {6, 2, 3, Tile::Q},
         {9, 2, 3, Tile::qq}
     }}, //W
@@ -115,7 +115,7 @@ const gscell_def gcd[8] = {
         {9, 0, 0, Tile::M},
         {7, 0, 0, Tile::M},
         {3, 2, 0, Tile::qp},
-        {5, 2, 2, Tile::qp},
+        {5, 2, 2, Tile::qq},
         NC,
         NC
     }}, //B

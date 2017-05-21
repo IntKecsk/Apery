@@ -33,6 +33,7 @@
 template<typename TR>
 struct RhombTraits
 {
+    virtual ~RhombTraits() = default;
     virtual TR get(uint8 ori, uint8 nmn) const = 0;
 };
 
@@ -44,11 +45,15 @@ typedef std::shared_ptr<RhombTraits<QRect>> RhombDim;
 typedef std::shared_ptr<RhombTraits<QBitmap>> RhombBmp;
 typedef std::shared_ptr<RhombTraits<QPixmap>> RhombPix;
 
+struct RhombSources;
+struct SourceSizes;
+
 class RhombLoader : public QObject
 {
     Q_OBJECT
 public:
     explicit RhombLoader(QObject *parent = 0);
+    ~RhombLoader();
     bool load(const QPixmap& src);
 
 signals:
@@ -58,10 +63,8 @@ private:
     Vectors m_vec;
     RhombDim m_dim;
     RhombBmp m_bmp;
-
-    QSize m_ssz;
-    QRect m_wsrc[10];
-    QRect m_nsrc[10];
+    std::unique_ptr<RhombSources> m_src;
+    std::unique_ptr<SourceSizes> m_ssz;
 };
 
 #endif // RHOMBLOADER_H

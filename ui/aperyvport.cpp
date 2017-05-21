@@ -70,22 +70,6 @@ AperyVPort::~AperyVPort()
     delete m_univ;
 }
 
-/*void AperyVPort::initializeGL()
-{
-    initializeOpenGLFunctions();
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-void AperyVPort::resizeGL(int w, int h)
-{
-    glViewport(0, 0, w, h);
-}
-
-void AperyVPort::paintGL()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-}*/
-
 void AperyVPort::paintEvent(QPaintEvent *e)
 {
     Q_UNUSED(e);
@@ -94,7 +78,6 @@ void AperyVPort::paintEvent(QPaintEvent *e)
 
     QPainter p(this);
     QRect vp = rect();
-    //cd.scale(8, 8);
     Range rx = m_univ->rangeX();
     Range ry = m_univ->rangeY();
 
@@ -103,28 +86,15 @@ void AperyVPort::paintEvent(QPaintEvent *e)
         WN wnx = m_univ->wnX(x);
         for(int y: ry)
         {
-            //if(x != y + 1) continue;
             WN wny = m_univ->wnY(y);
             quint8 ci = m_univ->at(x, y);
             if(ci)
             {
-                //const DimCellGrid& dcg = m_rd->getCellGrid();
-                //QPoint sup = dcg.xw*wnx.w + dcg.xn*wnx.n + dcg.yw*wny.w + dcg.yn*wny.n + o;
                 if(m_cd->getRect(ci, o, wnx, wny).intersects(vp))
                     m_cd->drawCell(p, ci, o, wnx, wny);
-                //p.setPen(QColor(255,0,0));
-                //p.drawLine(vp.left(), sup.y(), vp.right(), sup.y());
             }
         }
     }
-    /*const DimCellBounds& dcb = m_rd->getCellBounds();
-    const DimCellGrid& dcg = m_rd->getCellGrid();
-    //QPoint dist = dcg.xn+dcg.xw+dcg.yn+dcg.yw;
-    for(int i: {4, 6, 8, 10, 12, 14})
-    {
-        p.drawRect(dcb.getRect(i).translated(o)); //, QColor(192, 128, 128));
-        //m_cd->drawCell(p, 4*i+3, o, WN{0,0}, WN{0,0});
-    }*/
 }
 
 void AperyVPort::mousePressEvent(QMouseEvent *e)

@@ -3,10 +3,6 @@
 
 #include <QBitmap>
 
-template struct RhombTraits<QRect>;
-template struct RhombTraits<QBitmap>;
-template struct RhombTraits<QPixmap>;
-
 namespace
 {
 
@@ -17,23 +13,71 @@ struct RhombSource
     int plane;
 };
 
-RhombSource<QPoint> rsFromProto(const RhombSource<Coeffs>& proto, const Vectors& vec)
+template<typename T>
+struct Simple
 {
-    return {vec.point(proto.ofs), proto.plane};
+    const T& get(Tile t) const;
+    template<typename Y, typename Fn>
+    void transform(Simple<Y>& out, Fn func) const;
+
+    T w[10];
+    T n[10];
+};
+
+
+template<typename T>
+const T& Simple<T>::get(Tile t) const
+{
+    if (t.nmn > 3)
+        return n[t.ori];
+    else
+        return w[t.ori];
+}
+
+template<typename T>
+template<typename Y, typename Fn>
+void Simple<T>::transform(Simple<Y>& out, Fn func) const
+{
+    for (uint8 i = 0; i < 10; i++)
+        func({i, 0}, w[i], out.w[i]);
+
+    for (uint8 i = 0; i < 10; i++)
+        func({i, 4}, n[i], out.n[i]);
+}
+
+
+template<typename T>
+struct Neumann
+{
+    const T& get(Tile t) const;
+    template<typename Y, typename Fn>
+    void transform(Neumann<Y>& out, Fn func) const;
+
+    T d[7][10];
+};
+
+template<typename T>
+const T& Neumann<T>::get(Tile t) const
+{
+    return d[t.nmn][t.ori];
+}
+
+template<typename T>
+template<typename Y, typename Fn>
+void Neumann<T>::transform(Neumann<Y>& out, Fn func) const
+{
+    for (uint8 i = 0; i < 7; i++)
+    {
+        for (uint8 j = 0; j < 10; j++)
+            func({j, i}, d[i][j], out.d[i][j]);
+    }
 }
 
 template<typename TOfs>
-struct SimpleSources
-{
-    RhombSource<TOfs> wide[10];
-    RhombSource<TOfs> narrow[10];
-};
+using SimpleSources = Simple<RhombSource<TOfs>>;
 
 template<typename TOfs>
-struct NeumannSources
-{
-    RhombSource<TOfs> src[7][10];
-};
+using NeumannSources = Neumann<RhombSource<TOfs>>;
 
 RectCoeffs dimWideProto[10] = {
     //offset                size
@@ -64,6 +108,7 @@ RectCoeffs dimNarrowProto[10] = {
     {{ 0, -1,  0,  0,  0}, {0, 1, 1, 0, 1}},
     {{-1,  0,  0,  0, -1}, {1, 1, 0, 1, 1}}
 };
+
 SimpleSources<Coeffs> srcSimpleProto = {
     //wide
     {
@@ -218,129 +263,117 @@ struct SourceSize
 
 struct RhombSources
 {
+    template<template<typename> class TData>
+    const TData<RhombSource<QPoint>>& get();
+
     SimpleSources<QPoint> m_simple;
     NeumannSources<QPoint> m_neumann;
 };
 
-struct SourceSizes
+template<>
+const SimpleSources<QPoint>& RhombSources::get<Simple>()
 {
-    QList<SourceSize> list;
-};
+    return m_simple;
+}
 
-struct RhombDimSimple : RhombTraits<QRect>
+template<>
+const NeumannSources<QPoint>& RhombSources::get<Neumann>()
 {
-    explicit RhombDimSimple(const Vectors& oid);
+    return m_neumann;
+}
 
-    virtual QRect get(uint8 ori, uint8 nmn) const override;
-    QRect m_wide[10];
-    QRect m_narrow[10];
-};
-
-struct RhombBmpSimple : RhombTraits<QBitmap>
-{
-    virtual QBitmap get(uint8 ori, uint8 nmn) const override;
-    QBitmap m_wide[5];
-    QBitmap m_narrow[5];
-};
-
-struct RhombPixSimple : RhombTraits<QPixmap>
-{
-    virtual QPixmap get(uint8 ori, uint8 nmn) const override;
-    QPixmap m_wide[10];
-    QPixmap m_narrow[10];
-};
-
-struct RhombPixNeumann : RhombTraits<QPixmap>
-{
-    virtual QPixmap get(uint8 ori, uint8 nmn) const override;
-    QPixmap m_pix[7][10];
-};
-
-RhombDimSimple::RhombDimSimple(const Vectors& oid)
+RhombDim::RhombDim(const Vectors& vec)
 {
     for (int i=0; i<10; i++)
     {
-        m_wide[i] = oid.rect(dimWideProto[i]);
-        m_narrow[i] = oid.rect(dimNarrowProto[i]);
+        m_wide[i] = vec.rect(dimWideProto[i]);
+        m_narrow[i] = vec.rect(dimNarrowProto[i]);
     }
 }
 
-QRect RhombDimSimple::get(uint8 ori, uint8 nmn) const
+const QRect& RhombDim::get(Tile t) const
 {
-    if (nmn > 3)
-        return m_narrow[ori];
+    if (t.nmn > 3)
+        return m_narrow[t.ori];
     else
-        return m_wide[ori];
+        return m_wide[t.ori];
 }
 
-QBitmap RhombBmpSimple::get(uint8 ori, uint8 nmn) const
+template<typename TImg>
+const TImg& RhombMask<TImg>::get(Tile t) const
 {
-    if (nmn > 3)
-        return m_narrow[ori % 5];
+    if (t.nmn > 3)
+        return m_narrow[t.ori % 5];
     else
-        return m_wide[ori % 5];
+        return m_wide[t.ori % 5];
 }
 
-QPixmap RhombPixSimple::get(uint8 ori, uint8 nmn) const
+template struct RhombMask<QImage>;
+template struct RhombMask<QBitmap>;
+
+template<template<typename> class TData>
+struct RhombPixImpl : RhombPix
 {
-    if (nmn > 3)
-        return m_narrow[ori];
-    else
-        return m_wide[ori];
+    virtual const QPixmap& get(int state, Tile t) const override;
+
+    QVector<TData<QPixmap>> m_pix;
+};
+
+template<template<typename> class TData>
+const QPixmap& RhombPixImpl<TData>::get(int state, Tile t) const
+{
+    return m_pix.at(state).get(t);
 }
 
-QPixmap RhombPixNeumann::get(uint8 ori, uint8 nmn) const
+struct RhombLoader::Impl
 {
-    return m_pix[nmn][ori];
-}
+    RhombSources src;
+    QList<SourceSize> ssz;
+    RhombMask<QBitmap> bmp;
+};
 
 RhombLoader::RhombLoader(QObject *parent) : QObject(parent),
     m_vec{QPoint(7, 23), QPoint(19, 14), 24}
 {
-    m_dim = std::make_shared<RhombDimSimple>(m_vec);
+    m_i.reset(new Impl);
+    m_dim = std::make_shared<RhombDim>(m_vec);
+    m_mask = std::make_shared<RhombMask<QImage>>();
 
-    auto bmp = std::make_shared<RhombBmpSimple>();
     QString fn = ":/f%1.png", sn = ":/s%1.png";
 
     for(int i=0;i<5;i++)
     {
-        bmp->m_wide[i].load(fn.arg(i));
-        bmp->m_narrow[i].load(sn.arg(i));
+        m_mask->m_wide[i].load(fn.arg(i));
+        m_i->bmp.m_wide[i] = QBitmap::fromImage(m_mask->m_wide[i]);
+        m_mask->m_narrow[i].load(sn.arg(i));
+        m_i->bmp.m_narrow[i] = QBitmap::fromImage(m_mask->m_narrow[i]);
     }
-    m_bmp = std::move(bmp);
 
     QSize simple = m_vec.size({2,2,1,2,2});
     QSize neumann = m_vec.size({3,4,2,4,4});
 
-    m_ssz.reset(new SourceSizes);
+    m_i->ssz.append({QSize(neumann.width()*2, neumann.height()), neumann, true, true});
+    m_i->ssz.append({QSize(simple.width()*2, simple.height()), simple, true, false});
+    m_i->ssz.append({neumann, neumann, false, true});
+    m_i->ssz.append({simple, simple, false, false});
 
-    m_ssz->list.append({QSize(neumann.width()*2, neumann.height()), neumann, true, true});
-    m_ssz->list.append({QSize(simple.width()*2, simple.height()), simple, true, false});
-    m_ssz->list.append({neumann, neumann, false, true});
-    m_ssz->list.append({simple, simple, false, false});
-
-    m_src.reset(new RhombSources);
-    for (int i=0; i<10; i++)
+    auto concr = [&vec = m_vec](Tile, const RhombSource<Coeffs>& in, RhombSource<QPoint>& out)
     {
-        m_src->m_simple.wide[i] = rsFromProto(srcSimpleProto.wide[i], m_vec);
-        m_src->m_simple.narrow[i] = rsFromProto(srcSimpleProto.narrow[i], m_vec);
-    }
+        out = {vec.point(in.ofs), in.plane};
+    };
 
-    for (int i=0; i<7; i++)
-    {
-        for (int j=0; j<10; j++)
-            m_src->m_neumann.src[i][j] = rsFromProto(srcNeumannProto.src[i][j], m_vec);
-    }
+    srcSimpleProto.transform(m_i->src.m_simple, concr);
+    srcNeumannProto.transform(m_i->src.m_neumann, concr);
 }
 
 RhombLoader::~RhombLoader() = default;
 
-bool RhombLoader::load(const QPixmap& src)
+bool RhombLoader::load(const QPixmap& src, int nstates)
 {
     QSize ssz;
     bool dup = false, nmn = false;
 
-    for(const SourceSize& s: m_ssz->list)
+    for(const SourceSize& s: m_i->ssz)
     {
         if (src.width() >= s.ext.width() && src.height() >= s.ext.height())
         {
@@ -351,47 +384,39 @@ bool RhombLoader::load(const QPixmap& src)
         }
     }
 
-    if(ssz.isEmpty())
+    if(ssz.isEmpty() || src.height() / ssz.height() < nstates)
         return false;
 
-    auto bmp = std::static_pointer_cast<RhombBmpSimple>(m_bmp);
-    auto dim = std::static_pointer_cast<RhombDimSimple>(m_dim);
-    QPixmap cs[2];
-    cs[0]=src.copy(QRect(QPoint(0,0), ssz));
-    if(dup)
-        cs[1] = src.copy(QRect(QPoint(ssz.width(),0), ssz));
-    else
-        cs[1] = cs[0].transformed(QTransform(-1, 0, 0, -1, 0, 0));
-
     if (nmn)
-    {
-        auto pix = std::make_shared<RhombPixNeumann>();
-        for (int i = 0; i < 7; i++)
-        {
-            const auto& r = i > 3 ? dim->m_narrow : dim->m_wide;
-            const auto& m = i > 3 ? bmp->m_narrow : bmp->m_wide;
-            for (int j = 0; j < 10; j++)
-            {
-                const auto& s = m_src->m_neumann.src;
-                pix->m_pix[i][j] = cs[s[i][j].plane].copy(QRect(s[i][j].ofs, r[j].size()));
-                pix->m_pix[i][j].setMask(m[j%5]);
-            }
-        }
-        emit loaded(m_vec, m_dim, m_bmp, pix);
-    }
+        return doLoad<Neumann>(src, ssz, nstates, dup);
     else
+        return doLoad<Simple>(src, ssz, nstates, dup);
+}
+
+template<template<typename> class TData>
+bool RhombLoader::doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool dup)
+{
+    auto pix = std::make_shared<RhombPixImpl<TData>>();
+    pix->m_pix.resize(nstates);
+
+    for (int i = 0; i < nstates; i++)
     {
-        auto pix = std::make_shared<RhombPixSimple>();
-        for(int i = 0; i < 10; i++)
+        QPixmap cs[2];
+        cs[0]=src.copy(QRect(QPoint(0, i * ssz.height()), ssz));
+        if(dup)
+            cs[1] = src.copy(QRect(QPoint(ssz.width(), i * ssz.height()), ssz));
+        else
+            cs[1] = cs[0].transformed(QTransform(-1, 0, 0, -1, 0, 0));
+
+        m_i->src.get<TData>().transform(pix->m_pix[i],
+            [&cs, &dim=m_dim, &bmp=m_i->bmp](Tile t, const RhombSource<QPoint>& in, QPixmap& out)
         {
-            const auto& w = m_src->m_simple.wide;
-            const auto& n = m_src->m_simple.narrow;
-            pix->m_wide[i]=cs[w[i].plane].copy(QRect(w[i].ofs, dim->m_wide[i].size()));
-            pix->m_wide[i].setMask(bmp->m_wide[i%5]);
-            pix->m_narrow[i]=cs[n[i].plane].copy(QRect(n[i].ofs, dim->m_narrow[i].size()));
-            pix->m_narrow[i].setMask(bmp->m_narrow[i%5]);
-        }
-        emit loaded(m_vec, m_dim, m_bmp, pix);
+            out = cs[in.plane].copy(QRect(in.ofs, dim->get(t).size()));
+            out.setMask(bmp.get(t));
+            return;
+        });
     }
+
+    emit loaded(m_vec, m_dim, m_mask, pix);
     return true;
 }

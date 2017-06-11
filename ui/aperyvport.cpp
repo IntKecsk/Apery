@@ -42,8 +42,8 @@ AperyVPort::AperyVPort(QWidget *parent)
 {
     m_rl = new RhombLoader(this);
     RhombDrawer* rd = new RhombDrawer();
-    connect(m_rl, SIGNAL(loaded(Vectors,RhombDim,RhombBmp,RhombPix)),
-            rd, SLOT(updatePixmaps(Vectors,RhombDim,RhombBmp,RhombPix)));
+    connect(m_rl, SIGNAL(loaded(Vectors,RhombDimSP,RhombMaskSP,RhombPixSP)),
+            rd, SLOT(updatePixmaps(Vectors,RhombDimSP,RhombMaskSP,RhombPixSP)));
 
     m_cd = new CellDrawer(rd, this);
 
@@ -60,7 +60,7 @@ bool AperyVPort::loadImage(const QString &file)
     QPixmap px(file);
     if(px.isNull())
         return false;
-    m_rl->load(px);
+    m_rl->load(px, 1);
     update();
     return true;
 }

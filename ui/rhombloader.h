@@ -25,28 +25,40 @@
 #define RHOMBLOADER_H
 
 #include <QObject>
+#include <QImage>
 #include <memory>
 
-#include "common/types.h"
+#include "common/cells.h"
 #include "dimensions.h"
 
-template<typename TR>
-struct RhombTraits
+struct RhombDim
 {
-    virtual ~RhombTraits() = default;
-    virtual TR get(uint8 ori, uint8 nmn) const = 0;
+    explicit RhombDim(const Vectors& vec);
+    const QRect& get(Tile t) const;
+
+    QRect m_wide[10];
+    QRect m_narrow[10];
 };
 
-extern template struct RhombTraits<QRect>;
-extern template struct RhombTraits<QBitmap>;
-extern template struct RhombTraits<QPixmap>;
+template<typename TImg>
+struct RhombMask
+{
+    const TImg& get(Tile t) const;
 
-typedef std::shared_ptr<RhombTraits<QRect>> RhombDim;
-typedef std::shared_ptr<RhombTraits<QBitmap>> RhombBmp;
-typedef std::shared_ptr<RhombTraits<QPixmap>> RhombPix;
+    TImg m_wide[5];
+    TImg m_narrow[5];
+};
+extern template struct RhombMask<QImage>;
 
-struct RhombSources;
-struct SourceSizes;
+struct RhombPix
+{
+    virtual ~RhombPix() = default;
+    virtual const QPixmap& get(int state, Tile t) const = 0;
+};
+
+typedef std::shared_ptr<RhombDim> RhombDimSP;
+typedef std::shared_ptr<RhombMask<QImage>> RhombMaskSP;
+typedef std::shared_ptr<RhombPix> RhombPixSP;
 
 class RhombLoader : public QObject
 {
@@ -54,17 +66,21 @@ class RhombLoader : public QObject
 public:
     explicit RhombLoader(QObject *parent = 0);
     ~RhombLoader();
-    bool load(const QPixmap& src);
+    bool load(const QPixmap& src, int nstates);
 
 signals:
-    void loaded(const Vectors& vec, RhombDim dim, RhombBmp bmp, RhombPix pix);
+    void loaded(const Vectors& vec, RhombDimSP dim, RhombMaskSP mask, RhombPixSP pix);
 
 private:
+    struct Impl;
+
+    template<template<typename> class TData>
+    bool doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool dup);
+
     Vectors m_vec;
-    RhombDim m_dim;
-    RhombBmp m_bmp;
-    std::unique_ptr<RhombSources> m_src;
-    std::unique_ptr<SourceSizes> m_ssz;
+    RhombDimSP m_dim;
+    RhombMaskSP m_mask;
+    std::unique_ptr<Impl> m_i;
 };
 
 #endif // RHOMBLOADER_H

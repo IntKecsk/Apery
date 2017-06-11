@@ -27,11 +27,11 @@
 #include "rhombdrawer.h"
 
 RhombDrawer::RhombDrawer(QObject *parent):
-    QObject(parent), m_dim(), m_bmp(), m_pix(), m_vec()
+    QObject(parent), m_dim(), m_mask(), m_pix(), m_vec()
 {
 }
 
-void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, RhombPix pix)
+void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDimSP dim, RhombMaskSP mask, RhombPixSP pix)
 {
     if (vec != m_vec)
     {
@@ -39,11 +39,11 @@ void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, 
         emit dimChanged(vec);
     }
     m_dim = std::move(dim);
-    m_bmp = std::move(bmp);
+    m_mask = std::move(mask);
     m_pix = std::move(pix);
 }
 
-void RhombDrawer::drawRhomb(QPainter& p, Tile td, QPoint pt)
+void RhombDrawer::drawRhomb(QPainter& p, Tile td, int state, QPoint pt)
 {
-    p.drawPixmap(pt + m_dim->get(td.ori, td.nmn).topLeft(), m_pix->get(td.ori, td.nmn));
+    p.drawPixmap(pt + m_dim->get(td).topLeft(), m_pix->get(state, td));
 }

@@ -44,14 +44,14 @@ public:
      * @param px
      * @param py
      */
-    void drawRhomb(QPainter& p, Tile td, QPoint pt);
+    void drawRhomb(QPainter& p, Tile td, int state, QPoint pt);
     bool ready() const
     {
         return m_pix != nullptr;
     }
 
 public slots:
-    void updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, RhombPix pix);
+    void updatePixmaps(const Vectors& vec, RhombDimSP dim, RhombMaskSP mask, RhombPixSP pix);
 
 signals:
     void dimChanged(const Vectors& vec);
@@ -92,9 +92,9 @@ private:
 
     //static RhombDimProto s_rdf[10];
     //static RhombDimProto s_rds[10];
-    RhombDim m_dim;
-    RhombBmp m_bmp;
-    RhombPix m_pix;
+    RhombDimSP m_dim;
+    RhombMaskSP m_mask;
+    RhombPixSP m_pix;
     Vectors m_vec;
 };
 

@@ -191,6 +191,6 @@ void CellDrawer::_drawCell(QPainter& p, quint8 ci, QPoint pt)
         default:
             Q_UNREACHABLE();
         }
-        m_rd->drawRhomb(p, td_trans.t, pt + _getAtt(td_trans));
+        m_rd->drawRhomb(p, td_trans.t, 0, pt + _getAtt(td_trans));
     }
 }

@@ -43,7 +43,7 @@ void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDim dim, RhombBmp bmp, 
     m_pix = std::move(pix);
 }
 
-void RhombDrawer::drawRhomb(QPainter& p, tiledes td, QPoint pt)
+void RhombDrawer::drawRhomb(QPainter& p, Tile td, QPoint pt)
 {
     p.drawPixmap(pt + m_dim->get(td.ori, td.nmn).topLeft(), m_pix->get(td.ori, td.nmn));
 }

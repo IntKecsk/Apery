@@ -31,7 +31,7 @@
 
 class QPainter;
 class RhombDrawer;
-struct tiledes;
+struct CellTile;
 
 struct CellGrid
 {
@@ -84,7 +84,7 @@ public slots:
 
 private:
     void _drawCell(QPainter& p, quint8 ci, QPoint pt);
-    QPoint _getAtt(const tiledes& td);
+    QPoint _getAtt(const CellTile& td);
 
     RhombDrawer* m_rd;
     CellGrid m_cg;

@@ -44,7 +44,7 @@ public:
      * @param px
      * @param py
      */
-    void drawRhomb(QPainter& p, tiledes td, QPoint pt);
+    void drawRhomb(QPainter& p, Tile td, QPoint pt);
     bool ready() const
     {
         return m_pix != nullptr;

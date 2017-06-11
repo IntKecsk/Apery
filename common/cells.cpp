@@ -23,9 +23,9 @@
 
 #include "cells.h"
 
-constexpr tiledes NC = {0, 0, 0, 0};
+constexpr CellTile NC = {{0, 0}, 0, 0};
 
-namespace Tile
+namespace Neumann
 {
 
 enum Type
@@ -41,93 +41,93 @@ enum Type
 
 }
 
-const gscell_def gcd[8] = {
+const GSCell gcd[8] = {
     {9, 2, 2, {
-        {5, 0, 0, Tile::M},
-        {3, 0, 0, Tile::KJ},
-        {0, 0, 0, Tile::k},
-        {7, 0, 0, Tile::KL},
-        {0, 2, 2, Tile::M},
-        {2, 2, 2, Tile::M},
-        {4, 2, 2, Tile::M},
-        {6, 2, 2, Tile::M},
-        {8, 2, 2, Tile::M}
+        {{5, Neumann::M},  0, 0},
+        {{3, Neumann::KJ}, 0, 0},
+        {{0, Neumann::k},  0, 0},
+        {{7, Neumann::KL}, 0, 0},
+        {{0, Neumann::M},  2, 2},
+        {{2, Neumann::M},  2, 2},
+        {{4, Neumann::M},  2, 2},
+        {{6, Neumann::M},  2, 2},
+        {{8, Neumann::M},  2, 2}
     }}, //N
     {9, 3, 3, {
-        {5, 0, 0, Tile::Q},
-        {2, 0, 0, Tile::qp},
-        {8, 0, 0, Tile::qq},
-        {2, 2, 0, Tile::KJ},
-        {8, 0, 2, Tile::KL},
-        {4, 3, 2, Tile::Q},
-        {1, 3, 2, Tile::qp},
-        {6, 2, 3, Tile::Q},
-        {9, 2, 3, Tile::qq}
+        {{5, Neumann::Q},  0, 0},
+        {{2, Neumann::qp}, 0, 0},
+        {{8, Neumann::qq}, 0, 0},
+        {{2, Neumann::KJ}, 2, 0},
+        {{8, Neumann::KL}, 0, 2},
+        {{4, Neumann::Q},  3, 2},
+        {{1, Neumann::qp}, 3, 2},
+        {{6, Neumann::Q},  2, 3},
+        {{9, Neumann::qq}, 2, 3}
     }}, //W
     {8, 3, 3, {
-        {2, 2, 0, Tile::Q},
-        {9, 2, 0, Tile::qp},
-        {8, 0, 2, Tile::Q},
-        {1, 0, 2, Tile::qq},
-        {4, 3, 2, Tile::Q},
-        {1, 3, 2, Tile::qp},
-        {6, 2, 3, Tile::Q},
-        {9, 2, 3, Tile::qq},
+        {{2, Neumann::Q},  2, 0},
+        {{9, Neumann::qp}, 2, 0},
+        {{8, Neumann::Q},  0, 2},
+        {{1, Neumann::qq}, 0, 2},
+        {{4, Neumann::Q},  3, 2},
+        {{1, Neumann::qp}, 3, 2},
+        {{6, Neumann::Q},  2, 3},
+        {{9, Neumann::qq}, 2, 3},
         NC
     }}, //V
     {8, 3, 3, {
-        {0, 1, 0, Tile::qq},
-        {0, 0, 1, Tile::qp},
-        {6, 3, 2, Tile::M},
-        {4, 3, 2, Tile::KJ},
-        {1, 3, 2, Tile::k},
-        {4, 2, 3, Tile::M},
-        {6, 2, 3, Tile::KL},
-        {9, 2, 3, Tile::k},
+        {{0, Neumann::qq}, 1, 0},
+        {{0, Neumann::qp}, 0, 1},
+        {{6, Neumann::M},  3, 2},
+        {{4, Neumann::KJ}, 3, 2},
+        {{1, Neumann::k},  3, 2},
+        {{4, Neumann::M},  2, 3},
+        {{6, Neumann::KL}, 2, 3},
+        {{9, Neumann::k},  2, 3},
         NC
     }}, //O
     {9, 3, 2, {
-        {5, 0, 0, Tile::KJ},
-        {2, 0, 0, Tile::k},
-        {9, 0, 0, Tile::KL},
-        {7, 0, 0, Tile::M},
-        {3, 2, 0, Tile::qp},
-        {7, 1, 2, Tile::KJ},
-        {0, 3, 2, Tile::Q},
-        {7, 3, 2, Tile::qp},
-        {3, 3, 2, Tile::qq}
+        {{5, Neumann::KJ}, 0, 0},
+        {{2, Neumann::k},  0, 0},
+        {{9, Neumann::KL}, 0, 0},
+        {{7, Neumann::M},  0, 0},
+        {{3, Neumann::qp}, 2, 0},
+        {{7, Neumann::KJ}, 1, 2},
+        {{0, Neumann::Q},  3, 2},
+        {{7, Neumann::qp}, 3, 2},
+        {{3, Neumann::qq}, 3, 2}
     }}, //S
     {7, 3, 2, {
-        {5, 0, 0, Tile::KJ},
-        {2, 0, 0, Tile::k},
-        {9, 0, 0, Tile::KL},
-        {7, 0, 0, Tile::M},
-        {3, 2, 0, Tile::qp},
-        {7, 1, 2, Tile::Q},
-        {4, 1, 2, Tile::qp},
+        {{5, Neumann::KJ}, 0, 0},
+        {{2, Neumann::k},  0, 0},
+        {{9, Neumann::KL}, 0, 0},
+        {{7, Neumann::M},  0, 0},
+        {{3, Neumann::qp}, 2, 0},
+        {{7, Neumann::Q},  1, 2},
+        {{4, Neumann::qp}, 1, 2},
         NC,
         NC
     }}, //F
     {7, 3, 2, {
-        {5, 0, 0, Tile::M},
-        {3, 0, 0, Tile::M},
-        {1, 0, 0, Tile::M},
-        {9, 0, 0, Tile::M},
-        {7, 0, 0, Tile::M},
-        {3, 2, 0, Tile::qp},
-        {5, 2, 2, Tile::qq},
+        {{5, Neumann::M},  0, 0},
+        {{3, Neumann::M},  0, 0},
+        {{1, Neumann::M},  0, 0},
+        {{9, Neumann::M},  0, 0},
+        {{7, Neumann::M},  0, 0},
+        {{3, Neumann::qp}, 2, 0},
+        {{5, Neumann::qq}, 2, 2},
         NC,
         NC
     }}, //B
     {8, 3, 3, {
-        {0, 1, 0, Tile::qq},
-        {8, 0, 2, Tile::Q},
-        {1, 0, 2, Tile::qq},
-        {6, 3, 2, Tile::M},
-        {4, 3, 2, Tile::KJ},
-        {1, 3, 2, Tile::k},
-        {6, 2, 3, Tile::Q},
-        {9, 2, 3, Tile::qq},
+        {{0, Neumann::qq}, 1, 0},
+        {{8, Neumann::Q},  0, 2},
+        {{1, Neumann::qq}, 0, 2},
+        {{6, Neumann::M},  3, 2},
+        {{4, Neumann::KJ}, 3, 2},
+        {{1, Neumann::k},  3, 2},
+        {{6, Neumann::Q},  2, 3},
+        {{9, Neumann::qq}, 2, 3},
         NC
     }}  //Q
 };

@@ -71,7 +71,7 @@ Universe::Universe(uint8 pivot, int32 pivx, int32 pivy, uint8 strans):
     uint8 ct = (pivot>>2)&7;
     uint8 ori = (pivot&3)^strans;
 
-    const gscell_def& icd = gcd[ct];
+    const GSCell& icd = gcd[ct];
     int lenx, leny;
     if(ori&1)
     {

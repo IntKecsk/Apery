@@ -131,7 +131,7 @@ uint8 nmn_reflect(uint8 in)
 
 } // namespace
 
-QPoint CellDrawer::_getAtt(const tiledes& td)
+QPoint CellDrawer::_getAtt(const CellTile& td)
 {
     QPoint pt(0, 0);
     if(td.att_x&1)
@@ -150,7 +150,7 @@ QPoint CellDrawer::_getAtt(const tiledes& td)
     {
         pt+=m_cg.yn;
     }
-    if((td.ori&1)^(td.nmn>>2))
+    if((td.t.ori&1)^(td.t.nmn>>2))
     {
         pt+=m_cg.os;
     }
@@ -160,11 +160,11 @@ QPoint CellDrawer::_getAtt(const tiledes& td)
 void CellDrawer::_drawCell(QPainter& p, quint8 ci, QPoint pt)
 {
     quint8 ct=(ci>>2)&7, co=ci&3;
-    const gscell_def& c = gcd[ct];
+    const GSCell& c = gcd[ct];
     for(int i=0;i<c.num;i++)
     {
-        const tiledes& td_def = c.tiles[i];
-        tiledes td_trans;
+        const CellTile& td_def = c.tiles[i];
+        CellTile td_trans;
         switch(co)
         {
         case 0:
@@ -173,24 +173,24 @@ void CellDrawer::_drawCell(QPainter& p, quint8 ci, QPoint pt)
         case 1:
             td_trans.att_x = td_def.att_y;
             td_trans.att_y = td_def.att_x;
-            td_trans.ori = (10-td_def.ori)%10;
-            td_trans.nmn = nmn_reflect(td_def.nmn);
+            td_trans.t.ori = (10-td_def.t.ori)%10;
+            td_trans.t.nmn = nmn_reflect(td_def.t.nmn);
             break;
         case 2:
             td_trans.att_x = td_def.att_x^c.width_x;
             td_trans.att_y = td_def.att_y^c.width_y;
-            td_trans.ori = (td_def.ori+5)%10;
-            td_trans.nmn = td_def.nmn;
+            td_trans.t.ori = (td_def.t.ori+5)%10;
+            td_trans.t.nmn = td_def.t.nmn;
             break;
         case 3:
             td_trans.att_x = td_def.att_y^c.width_y;
             td_trans.att_y = td_def.att_x^c.width_x;
-            td_trans.ori = (15-td_def.ori)%10;
-            td_trans.nmn = nmn_reflect(td_def.nmn);
+            td_trans.t.ori = (15-td_def.t.ori)%10;
+            td_trans.t.nmn = nmn_reflect(td_def.t.nmn);
             break;
         default:
             Q_UNREACHABLE();
         }
-        m_rd->drawRhomb(p, td_trans, pt + _getAtt(td_trans));
+        m_rd->drawRhomb(p, td_trans.t, pt + _getAtt(td_trans));
     }
 }

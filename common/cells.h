@@ -26,25 +26,31 @@
 
 #include "types.h"
 
-/** tile descriptor structure */
-struct tiledes
+/** Tile description */
+struct Tile
 {
     uint8 ori; ///< Tile orientation
-    uint8 att_x; ///< X attachment point within a cell
-    uint8 att_y; ///< Y attachment point within a cell
     uint8 nmn; ///< von Neumann neighbourhood type
 };
 
+/** Tile as part of a GS cell */
+struct CellTile
+{
+    Tile t;
+    uint8 att_x; ///< X attachment point within a cell
+    uint8 att_y; ///< Y attachment point within a cell
+};
+
 /** GS-cell definition structure */
-struct gscell_def
+struct GSCell
 {
     uint8 num; ///< Number of tiles in the cell
     uint8 width_x; ///< X width descriptor
     uint8 width_y; ///< Y width descriptor
-    tiledes tiles[9]; ///< Tile descriptors
+    CellTile tiles[9]; ///< Tile descriptors
 };
 
 /** Specific GS-cell definitions */
-extern const gscell_def gcd[8];
+extern const GSCell gcd[8];
 
 #endif // CELLS_H

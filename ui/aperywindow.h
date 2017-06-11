@@ -36,6 +36,8 @@ public:
 public slots:
     void fileOpen();
     void fileOpenRecent();
+    void dumpSimple();
+    void dumpNeumann();
 protected:
     virtual void closeEvent(QCloseEvent *event) override;
 private:
@@ -58,7 +60,7 @@ private:
     void _delRecent(QAction *ac, const QString &s);
     void _upRecent(QAction *ac);
 
-    void addAction();
+    void _dumpSources(const QString& caption, bool nmn);
 };
 
 #endif // APERYWINDOW_H

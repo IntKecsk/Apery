@@ -81,11 +81,27 @@ void AperyWindow::fileOpenRecent()
     }
 }
 
+void AperyWindow::dumpSimple()
+{
+    _dumpSources(tr("Dump simple sources"), false);
+}
+
+void AperyWindow::dumpNeumann()
+{
+    _dumpSources(tr("Dump Neumann sources"), true);
+}
+
 void AperyWindow::_setupMenu()
 {
     m_file = menuBar()->addMenu(tr("&File"));
     m_file->addAction(tr("&Open"), this, SLOT(fileOpen()), QKeySequence::Open);
     m_rfsep = m_file->addSeparator();
+
+    QMenu* tools = menuBar()->addMenu(tr("&Tools"));
+    QMenu* dump = tools->addMenu(tr("&Dump"));
+
+    dump->addAction(tr("&Simple sources"), this, SLOT(dumpSimple()));
+    dump->addAction(tr("&Neumann sources"), this, SLOT(dumpNeumann()));
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(tr("About &Qt"), qApp, SLOT(aboutQt()));
@@ -192,5 +208,19 @@ void AperyWindow::_upRecent(QAction* ac)
         m_file->removeAction(ac);
         m_file->insertAction(m_rffirst, ac);
         m_rffirst = ac;
+    }
+}
+
+void AperyWindow::_dumpSources(const QString& caption, bool nmn)
+{
+    QFileDialog d(nullptr, caption, m_fddir);
+    d.setFileMode(QFileDialog::AnyFile);
+    d.setAcceptMode(QFileDialog::AcceptSave);
+    if (d.exec())
+    {
+        if (!m_avp->dumpSources(d.selectedFiles()[0], nmn))
+        {
+            QMessageBox::warning(this, tr("Could not save the file"), tr("Could not save the file"));
+        }
     }
 }

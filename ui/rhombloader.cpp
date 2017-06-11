@@ -2,6 +2,7 @@
 #include "rhombloader.h"
 
 #include <QBitmap>
+#include <QPainter>
 
 namespace
 {
@@ -17,8 +18,8 @@ template<typename T>
 struct Simple
 {
     const T& get(Tile t) const;
-    template<typename Y, typename Fn>
-    void transform(Simple<Y>& out, Fn func) const;
+    template<typename Fn, typename... Y>
+    void transform(Fn func, Simple<Y>&... out) const;
 
     T w[10];
     T n[10];
@@ -35,14 +36,14 @@ const T& Simple<T>::get(Tile t) const
 }
 
 template<typename T>
-template<typename Y, typename Fn>
-void Simple<T>::transform(Simple<Y>& out, Fn func) const
+template<typename Fn, typename... Y>
+void Simple<T>::transform(Fn func, Simple<Y>&... out) const
 {
     for (uint8 i = 0; i < 10; i++)
-        func({i, 0}, w[i], out.w[i]);
+        func({i, 0}, w[i], out.w[i]...);
 
     for (uint8 i = 0; i < 10; i++)
-        func({i, 4}, n[i], out.n[i]);
+        func({i, 4}, n[i], out.n[i]...);
 }
 
 
@@ -50,8 +51,8 @@ template<typename T>
 struct Neumann
 {
     const T& get(Tile t) const;
-    template<typename Y, typename Fn>
-    void transform(Neumann<Y>& out, Fn func) const;
+    template<typename Fn, typename... Y>
+    void transform(Fn func, Neumann<Y>&... out) const;
 
     T d[7][10];
 };
@@ -63,13 +64,13 @@ const T& Neumann<T>::get(Tile t) const
 }
 
 template<typename T>
-template<typename Y, typename Fn>
-void Neumann<T>::transform(Neumann<Y>& out, Fn func) const
+template<typename Fn, typename... Y>
+void Neumann<T>::transform(Fn func, Neumann<Y>&... out) const
 {
     for (uint8 i = 0; i < 7; i++)
     {
         for (uint8 j = 0; j < 10; j++)
-            func({j, i}, d[i][j], out.d[i][j]);
+            func({j, i}, d[i][j], out.d[i][j]...);
     }
 }
 
@@ -315,6 +316,7 @@ template<template<typename> class TData>
 struct RhombPixImpl : RhombPix
 {
     virtual const QPixmap& get(int state, Tile t) const override;
+    virtual int nstates() const override;
 
     QVector<TData<QPixmap>> m_pix;
 };
@@ -323,6 +325,12 @@ template<template<typename> class TData>
 const QPixmap& RhombPixImpl<TData>::get(int state, Tile t) const
 {
     return m_pix.at(state).get(t);
+}
+
+template<template<typename> class TData>
+int RhombPixImpl<TData>::nstates() const
+{
+    return m_pix.size();
 }
 
 struct RhombLoader::Impl
@@ -362,8 +370,8 @@ RhombLoader::RhombLoader(QObject *parent) : QObject(parent),
         out = {vec.point(in.ofs), in.plane};
     };
 
-    srcSimpleProto.transform(m_i->src.m_simple, concr);
-    srcNeumannProto.transform(m_i->src.m_neumann, concr);
+    srcSimpleProto.transform(concr, m_i->src.m_simple);
+    srcNeumannProto.transform(concr, m_i->src.m_neumann);
 }
 
 RhombLoader::~RhombLoader() = default;
@@ -393,6 +401,14 @@ bool RhombLoader::load(const QPixmap& src, int nstates)
         return doLoad<Simple>(src, ssz, nstates, dup);
 }
 
+QImage RhombLoader::dump(bool nmn)
+{
+    if (nmn)
+        return doDump<Neumann>(m_i->ssz.at(0).ssz);
+    else
+        return doDump<Simple>(m_i->ssz.at(1).ssz);
+}
+
 template<template<typename> class TData>
 bool RhombLoader::doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool dup)
 {
@@ -408,15 +424,40 @@ bool RhombLoader::doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool
         else
             cs[1] = cs[0].transformed(QTransform(-1, 0, 0, -1, 0, 0));
 
-        m_i->src.get<TData>().transform(pix->m_pix[i],
+        m_i->src.get<TData>().transform(
             [&cs, &dim=m_dim, &bmp=m_i->bmp](Tile t, const RhombSource<QPoint>& in, QPixmap& out)
         {
             out = cs[in.plane].copy(QRect(in.ofs, dim->get(t).size()));
             out.setMask(bmp.get(t));
             return;
+        }, pix->m_pix[i]);
+    }
+
+    m_pix = pix;
+    emit loaded(m_vec, m_dim, m_mask, pix);
+    return true;
+}
+
+template<template<typename> class TData>
+QImage RhombLoader::doDump(const QSize& ssz)
+{
+    int nstates = m_pix->nstates();
+    int w = ssz.width(), h = ssz.height();
+    QImage res(QSize(2 * w, nstates * h), QImage::Format_ARGB32);
+    res.fill(Qt::white);
+
+    QPainter pp(&res);
+
+    QPoint pofs[2]{{0, 0}, {w, 0}};
+    QPoint sofs(0, h);
+
+    for(int i = 0; i < nstates; i++)
+    {
+        m_i->src.get<TData>().transform([&, &pix=m_pix](Tile t, const RhombSource<QPoint>& in)
+        {
+            pp.drawPixmap(in.ofs + pofs[in.plane] + sofs * i, pix->get(i, t));
         });
     }
 
-    emit loaded(m_vec, m_dim, m_mask, pix);
-    return true;
+    return res;
 }

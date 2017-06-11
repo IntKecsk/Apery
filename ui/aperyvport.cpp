@@ -65,6 +65,12 @@ bool AperyVPort::loadImage(const QString &file)
     return true;
 }
 
+bool AperyVPort::dumpSources(const QString &file, bool nmn)
+{
+    QImage img = m_rl->dump(nmn);
+    return img.save(file);
+}
+
 AperyVPort::~AperyVPort()
 {
     delete m_univ;

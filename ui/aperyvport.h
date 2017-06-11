@@ -39,6 +39,7 @@ class AperyVPort : public QWidget //QOpenGLWidget, protected QOpenGLFunctions
 public:
     AperyVPort(QWidget *parent = 0);
     bool loadImage(const QString& file);
+    bool dumpSources(const QString& file, bool nmn);
     ~AperyVPort();
 protected:
     //virtual void initializeGL() override;

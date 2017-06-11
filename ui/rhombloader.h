@@ -54,6 +54,7 @@ struct RhombPix
 {
     virtual ~RhombPix() = default;
     virtual const QPixmap& get(int state, Tile t) const = 0;
+    virtual int nstates() const = 0;
 };
 
 typedef std::shared_ptr<RhombDim> RhombDimSP;
@@ -67,6 +68,7 @@ public:
     explicit RhombLoader(QObject *parent = 0);
     ~RhombLoader();
     bool load(const QPixmap& src, int nstates);
+    QImage dump(bool nmn);
 
 signals:
     void loaded(const Vectors& vec, RhombDimSP dim, RhombMaskSP mask, RhombPixSP pix);
@@ -76,10 +78,13 @@ private:
 
     template<template<typename> class TData>
     bool doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool dup);
+    template<template<typename> class TData>
+    QImage doDump(const QSize& ssz);
 
     Vectors m_vec;
     RhombDimSP m_dim;
     RhombMaskSP m_mask;
+    RhombPixSP m_pix;
     std::unique_ptr<Impl> m_i;
 };
 

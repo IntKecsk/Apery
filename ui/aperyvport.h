@@ -58,6 +58,8 @@ private:
     int dwx, dnx, dwy, dny; //WN-coordinates of the cell in the origin
 
     bool m_drag;
+    bool m_hot;
+    QPoint m_hp;
     QPoint drag_start;
     QPoint orig_o;
 };

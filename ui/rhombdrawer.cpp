@@ -47,3 +47,9 @@ void RhombDrawer::drawRhomb(QPainter& p, Tile td, int state, QPoint pt)
 {
     p.drawPixmap(pt + m_dim->get(td).topLeft(), m_pix->get(state, td));
 }
+
+bool RhombDrawer::inRhomb(QPoint n, Tile td, QPoint pt)
+{
+    QRect r = m_dim->get(td).translated(pt);
+    return r.contains(n) && m_mask->get(td).pixelIndex(n - r.topLeft());
+}

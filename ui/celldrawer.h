@@ -45,6 +45,8 @@ public:
     QPoint yn;
     QPoint yw;
     QPoint os;
+
+    QPoint point(WN x, WN y);
 };
 
 class CellBounds
@@ -76,14 +78,18 @@ public:
 
     bool ready() const;
 
-    void drawCell(QPainter& p, quint8 ci, QPoint pt, WN x, WN y);
+    void drawCell(QPainter& p, quint8 ci, int state, QPoint pt, WN x, WN y);
+    void drawCell(QPainter& p, quint8 ci, int state, QPoint pt);
+    int inCell(QPoint n, quint8 ci, QPoint pt, WN x, WN y);
+    int inCell(QPoint n, quint8 ci, QPoint pt);
+
     QRect getRect(quint8 ci, QPoint pt, WN x, WN y);
 
 public slots:
     void updateDim(const Vectors& vec);
 
 private:
-    void _drawCell(QPainter& p, quint8 ci, QPoint pt);
+
     QPoint _getAtt(const CellTile& td);
 
     RhombDrawer* m_rd;

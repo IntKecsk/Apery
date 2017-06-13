@@ -60,7 +60,7 @@ bool AperyVPort::loadImage(const QString &file)
     QPixmap px(file);
     if(px.isNull())
         return false;
-    m_rl->load(px, 1);
+    m_rl->load(px, 2);
     update();
     return true;
 }
@@ -97,7 +97,10 @@ void AperyVPort::paintEvent(QPaintEvent *e)
             if(ci)
             {
                 if(m_cd->getRect(ci, o, wnx, wny).intersects(vp))
-                    m_cd->drawCell(p, ci, o, wnx, wny);
+                {
+                    int s = m_hot ? m_cd->inCell(m_hp, ci, o, wnx, wny) : 0;
+                    m_cd->drawCell(p, ci, s, o, wnx, wny);
+                }
             }
         }
     }
@@ -105,23 +108,49 @@ void AperyVPort::paintEvent(QPaintEvent *e)
 
 void AperyVPort::mousePressEvent(QMouseEvent *e)
 {
-    if(e->button()!=Qt::LeftButton) return e->ignore();
-    m_drag = true;
-    drag_start = e->pos();
-    orig_o = o;
+    if (e->button() != Qt::LeftButton)
+        return e->ignore();
+
+    if (e->modifiers() & Qt::ShiftModifier)
+    {
+        m_hot = true;
+        m_hp = e->pos();
+        update();
+    }
+    else
+    {
+        m_drag = true;
+        drag_start = e->pos();
+        orig_o = o;
+    }
 }
 
 void AperyVPort::mouseMoveEvent(QMouseEvent *e)
 {
-    if(!(m_drag && (e->buttons()&Qt::LeftButton))) return e->ignore();
-    o = orig_o + (e->pos()-drag_start);
+    if (!(e->buttons() & Qt::LeftButton))
+        return e->ignore();
+
+    if (m_drag)
+        o = orig_o + (e->pos()-drag_start);
+    else if (m_hot)
+        m_hp = e->pos();
+
     update();
 }
 
 void AperyVPort::mouseReleaseEvent(QMouseEvent *e)
 {
-    if(e->button()!=Qt::LeftButton) return e->ignore();
-    o = orig_o + (e->pos()-drag_start);
-    m_drag = false;
+    if (e->button() != Qt::LeftButton)
+        return e->ignore();
+
+    if (m_drag)
+    {
+        o = orig_o + (e->pos()-drag_start);
+        m_drag = false;
+    }
+    else if (m_hot)
+    {
+        m_hot = false;
+    }
     update();
 }

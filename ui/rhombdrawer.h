@@ -45,6 +45,7 @@ public:
      * @param py
      */
     void drawRhomb(QPainter& p, Tile td, int state, QPoint pt);
+    bool inRhomb(QPoint n, Tile td, QPoint pt);
     bool ready() const
     {
         return m_pix != nullptr;

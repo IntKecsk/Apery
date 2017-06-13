@@ -83,6 +83,11 @@ void CellGrid::update(const Vectors &vec)
     os = vec.point({0, 2, -1, 0, 0});
 }
 
+QPoint CellGrid::point(WN x, WN y)
+{
+    return xw*x.w + xn*x.n + yw*y.w + yn*y.n;
+}
+
 void CellBounds::update(const Vectors &vec)
 {
     for(int i=0; i<8; i++)
@@ -111,14 +116,9 @@ void CellDrawer::updateDim(const Vectors &vec)
     m_cb.update(vec);
 }
 
-void CellDrawer::drawCell(QPainter& p, quint8 ci, QPoint pt, WN x, WN y)
+void CellDrawer::drawCell(QPainter& p, quint8 ci, int state, QPoint pt, WN x, WN y)
 {
-    _drawCell(p, ci, pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
-}
-
-QRect CellDrawer::getRect(quint8 ci, QPoint pt, WN x, WN y)
-{
-    return m_cb.getRect(ci).translated(pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
+    drawCell(p, ci, state, pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
 }
 
 namespace
@@ -127,6 +127,38 @@ namespace
 uint8 nmn_reflect(uint8 in)
 {
     return in ^ (((in + 1) & 2) ? 3 : 0);
+}
+
+CellTile _trans(const CellTile& def, uint8 co, uint8 wx, uint8 wy)
+{
+    CellTile res;
+    switch(co)
+    {
+    case 0:
+        res = def;
+        break;
+    case 1:
+        res.att_x = def.att_y;
+        res.att_y = def.att_x;
+        res.t.ori = (10-def.t.ori)%10;
+        res.t.nmn = nmn_reflect(def.t.nmn);
+        break;
+    case 2:
+        res.att_x = def.att_x^wx;
+        res.att_y = def.att_y^wy;
+        res.t.ori = (def.t.ori+5)%10;
+        res.t.nmn = def.t.nmn;
+        break;
+    case 3:
+        res.att_x = def.att_y^wy;
+        res.att_y = def.att_x^wx;
+        res.t.ori = (15-def.t.ori)%10;
+        res.t.nmn = nmn_reflect(def.t.nmn);
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+    return res;
 }
 
 } // namespace
@@ -157,40 +189,39 @@ QPoint CellDrawer::_getAtt(const CellTile& td)
     return pt;
 }
 
-void CellDrawer::_drawCell(QPainter& p, quint8 ci, QPoint pt)
+void CellDrawer::drawCell(QPainter& p, quint8 ci, int state, QPoint pt)
 {
-    quint8 ct=(ci>>2)&7, co=ci&3;
+    quint8 ct = (ci >> 2) & 7, co = ci & 3;
     const GSCell& c = gcd[ct];
+    for (int i = 0; i < c.num; i++)
+    {
+        CellTile td_trans = _trans(c.tiles[i], co, c.width_x, c.width_y);
+        m_rd->drawRhomb(p, td_trans.t, (state >> i) & 1, pt + _getAtt(td_trans));
+    }
+}
+
+int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt, WN x, WN y)
+{
+    if (!getRect(ci, pt, x, y).contains(n))
+        return 0;
+    return inCell(n, ci, pt + m_cg.point(x, y));
+}
+
+int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt)
+{
+    quint8 ct = (ci >> 2) & 7, co = ci & 3;
+    const GSCell& c = gcd[ct];
+    int r = 0;
     for(int i=0;i<c.num;i++)
     {
-        const CellTile& td_def = c.tiles[i];
-        CellTile td_trans;
-        switch(co)
-        {
-        case 0:
-            td_trans = td_def;
-            break;
-        case 1:
-            td_trans.att_x = td_def.att_y;
-            td_trans.att_y = td_def.att_x;
-            td_trans.t.ori = (10-td_def.t.ori)%10;
-            td_trans.t.nmn = nmn_reflect(td_def.t.nmn);
-            break;
-        case 2:
-            td_trans.att_x = td_def.att_x^c.width_x;
-            td_trans.att_y = td_def.att_y^c.width_y;
-            td_trans.t.ori = (td_def.t.ori+5)%10;
-            td_trans.t.nmn = td_def.t.nmn;
-            break;
-        case 3:
-            td_trans.att_x = td_def.att_y^c.width_y;
-            td_trans.att_y = td_def.att_x^c.width_x;
-            td_trans.t.ori = (15-td_def.t.ori)%10;
-            td_trans.t.nmn = nmn_reflect(td_def.t.nmn);
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-        m_rd->drawRhomb(p, td_trans.t, 0, pt + _getAtt(td_trans));
+        CellTile td_trans = _trans(c.tiles[i], co, c.width_x, c.width_y);
+        if (m_rd->inRhomb(n, td_trans.t,  pt + _getAtt(td_trans)))
+            r |= (1 << i);
     }
+    return r;
+}
+
+QRect CellDrawer::getRect(quint8 ci, QPoint pt, WN x, WN y)
+{
+    return m_cb.getRect(ci).translated(pt + m_cg.point(x, y));
 }

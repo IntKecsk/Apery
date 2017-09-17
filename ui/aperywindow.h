@@ -38,6 +38,7 @@ public slots:
     void fileOpenRecent();
     void dumpSimple();
     void dumpNeumann();
+    void changeMode();
 protected:
     virtual void closeEvent(QCloseEvent *event) override;
 private:
@@ -50,9 +51,13 @@ private:
     int m_rfidx;
     QAction* m_rfsep;
 
+    QToolBar* m_tb;
+    QAction* m_modes[2];
+
     enum {RECENT_FILE_LIST_SIZE = 5};
 
     void _setupMenu();
+    void _setupToolbar();
     void _readSettings();
     void _writeSettings();
 

@@ -40,6 +40,7 @@ public:
     AperyVPort(QWidget *parent = 0);
     bool loadImage(const QString& file);
     bool dumpSources(const QString& file, bool nmn);
+    void setMode(int mode);
     ~AperyVPort();
 protected:
     //virtual void initializeGL() override;
@@ -57,6 +58,7 @@ private:
     QPoint o; //Origin coords
     int dwx, dnx, dwy, dny; //WN-coordinates of the cell in the origin
 
+    int m_mode;
     bool m_drag;
     bool m_hot;
     QPoint m_hp;

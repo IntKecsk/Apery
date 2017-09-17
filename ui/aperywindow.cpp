@@ -23,6 +23,7 @@
 
 #include <QApplication>
 #include <QMenuBar>
+#include <QToolBar>
 #include <QFileDialog>
 #include <QSettings>
 #include <QMessageBox>
@@ -36,6 +37,7 @@ AperyWindow::AperyWindow(QWidget *parent) : QMainWindow(parent), m_rffirst(nullp
     m_avp = new AperyVPort();
     setCentralWidget(m_avp);
     _setupMenu();
+    _setupToolbar();
     (void)statusBar();
     _readSettings();
 }
@@ -91,6 +93,20 @@ void AperyWindow::dumpNeumann()
     _dumpSources(tr("Dump Neumann sources"), true);
 }
 
+void AperyWindow::changeMode()
+{
+    auto a = qobject_cast<QAction*>(sender());
+    if (a)
+    {
+        int m = a->data().toInt();
+        for (int i = 0; i < 2; i++)
+        {
+            m_modes[i]->setChecked(i == m);
+        }
+        m_avp->setMode(m);
+    }
+}
+
 void AperyWindow::_setupMenu()
 {
     m_file = menuBar()->addMenu(tr("&File"));
@@ -105,6 +121,19 @@ void AperyWindow::_setupMenu()
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     help->addAction(tr("About &Qt"), qApp, SLOT(aboutQt()));
+}
+
+void AperyWindow::_setupToolbar()
+{
+    m_tb = addToolBar(tr("Toolbar"));
+    m_modes[0] = m_tb->addAction(tr("Select"), this, SLOT(changeMode()));
+    m_modes[1] = m_tb->addAction(tr("Move"), this, SLOT(changeMode()));
+    for (int i = 0; i < 2; i++)
+    {
+        m_modes[i]->setCheckable(true);
+        m_modes[i]->setData(i);
+    }
+    m_modes[0]->setChecked(true);
 }
 
 void AperyWindow::_readSettings()

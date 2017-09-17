@@ -26,6 +26,7 @@
 #include <QPixmap>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QApplication>
 
 #include "aperyvport.h"
 #include "rhombdrawer.h"
@@ -38,7 +39,7 @@
 
 AperyVPort::AperyVPort(QWidget *parent)
     : QWidget(parent),  //QOpenGLWidget(parent)
-      o(400, 400), dwx(0), dnx(0), dwy(0), dny(0), m_drag(false)
+      o(400, 400), dwx(0), dnx(0), dwy(0), dny(0), m_mode(0), m_drag(false)
 {
     m_rl = new RhombLoader(this);
     RhombDrawer* rd = new RhombDrawer();
@@ -69,6 +70,22 @@ bool AperyVPort::dumpSources(const QString &file, bool nmn)
 {
     QImage img = m_rl->dump(nmn);
     return img.save(file);
+}
+
+void AperyVPort::setMode(int mode)
+{
+    m_mode = mode;
+    switch (m_mode)
+    {
+    case 0:
+        unsetCursor();
+        break;
+    case 1:
+        setCursor(Qt::OpenHandCursor);
+        break;
+    default:
+        break;
+    }
 }
 
 AperyVPort::~AperyVPort()
@@ -111,17 +128,21 @@ void AperyVPort::mousePressEvent(QMouseEvent *e)
     if (e->button() != Qt::LeftButton)
         return e->ignore();
 
-    if (e->modifiers() & Qt::ShiftModifier)
+    switch(m_mode)
     {
+    case 0:
         m_hot = true;
         m_hp = e->pos();
         update();
-    }
-    else
-    {
+        break;
+    case 1:
+        qApp->setOverrideCursor(Qt::ClosedHandCursor);
         m_drag = true;
         drag_start = e->pos();
         orig_o = o;
+        break;
+    default:
+        break;
     }
 }
 
@@ -147,6 +168,7 @@ void AperyVPort::mouseReleaseEvent(QMouseEvent *e)
     {
         o = orig_o + (e->pos()-drag_start);
         m_drag = false;
+        qApp->restoreOverrideCursor();
     }
     else if (m_hot)
     {

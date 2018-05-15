@@ -32,13 +32,13 @@ struct qtnode {};
 /** Leaf node. Contains cell-types and data for 4x4 square of cells. Is at level 0 */
 struct brick : public qtnode
 {
-    uint32 cells[16];
+    uint32_t cells[16];
 };
 
 /** Leaf node. Contains cell-types for 8x8 square of empty cells. Is at level 1 */
 struct ebrick : public qtnode
 {
-    uint8 ctypes[64];
+    uint8_t ctypes[64];
 };
 
 /** Inner node */

@@ -37,7 +37,7 @@ class RhombDrawer : public QObject
 {
     Q_OBJECT
 public:
-    explicit RhombDrawer(QObject *parent = 0);
+    explicit RhombDrawer(QObject *parent = nullptr);
     /**
      * @brief Draw a Penrose rhomb
      * @param td

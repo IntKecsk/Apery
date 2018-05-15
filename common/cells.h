@@ -24,33 +24,35 @@
 #ifndef CELLS_H
 #define CELLS_H
 
-#include "types.h"
+#include <cstdint>
 
 /** Tile description */
 struct Tile
 {
-    uint8 ori; ///< Tile orientation
-    uint8 nmn; ///< von Neumann neighbourhood type
+    uint8_t ori; ///< Tile orientation
+    uint8_t nmn; ///< von Neumann neighbourhood type
 };
 
 /** Tile as part of a GS cell */
 struct CellTile
 {
+    CellTile trans(uint8_t co, uint8_t wx, uint8_t wy) const;
+
     Tile t;
-    uint8 att_x; ///< X attachment point within a cell
-    uint8 att_y; ///< Y attachment point within a cell
+    uint8_t att_x; ///< X attachment point within a cell
+    uint8_t att_y; ///< Y attachment point within a cell
 };
 
 /** GS-cell definition structure */
-struct GSCell
+struct GSCellDef
 {
-    uint8 num; ///< Number of tiles in the cell
-    uint8 width_x; ///< X width descriptor
-    uint8 width_y; ///< Y width descriptor
+    uint8_t num; ///< Number of tiles in the cell
+    uint8_t width_x; ///< X width descriptor
+    uint8_t width_y; ///< Y width descriptor
     CellTile tiles[9]; ///< Tile descriptors
 };
 
 /** Specific GS-cell definitions */
-extern const GSCell gcd[8];
+extern const GSCellDef gcd[8];
 
 #endif // CELLS_H

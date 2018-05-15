@@ -10,34 +10,35 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Apery
 TEMPLATE = app
-CONFIG += c++14
-
+CONFIG += c++17
 
 SOURCES += main.cpp\
     common/cells.cpp \
     ui/aperyvport.cpp \
     ui/rhombdrawer.cpp \
     ui/celldrawer.cpp \
-    engine/universe.cpp \
-    engine/subst.cpp \
-    engine/storage.cpp \
     ui/aperywindow.cpp \
     ui/dimensions.cpp \
-    ui/rhombloader.cpp
+    ui/rhombloader.cpp \
+    engine/types.cpp \
+    engine/universe.cpp \
+    engine/deflate.cpp \
+    engine/cellfield.cpp
 
 HEADERS += \
     common/cells.h \
     ui/aperyvport.h \
     ui/rhombdrawer.h \
     ui/celldrawer.h \
-    engine/universe.h \
     common/types.h \
-    engine/subst.h \
-    engine/storage.h \
     engine/quadtree.h \
     ui/aperywindow.h \
     ui/dimensions.h \
-    ui/rhombloader.h
+    ui/rhombloader.h \
+    engine/types.h \
+    engine/universe.h \
+    engine/deflate.h \
+    engine/cellfield.h
 
 RESOURCES += \
     rsrc/masks.qrc

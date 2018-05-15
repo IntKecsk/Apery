@@ -28,7 +28,7 @@ constexpr CellTile NC = {{0, 0}, 0, 0};
 namespace Neumann
 {
 
-enum Type
+enum Type : uint8_t
 {
     M = 0,
     KL = 1,
@@ -39,9 +39,45 @@ enum Type
     qp = 6
 };
 
+uint8_t reflect(uint8_t in)
+{
+    return in ^ (((in + 1) & 2) ? 3 : 0);
 }
 
-const GSCell gcd[8] = {
+}
+
+CellTile CellTile::trans(uint8_t co, uint8_t wx, uint8_t wy) const
+{
+    CellTile res;
+    switch(co)
+    {
+    case 0:
+        return *this;
+    case 1:
+        res.att_x = att_y;
+        res.att_y = att_x;
+        res.t.ori = (10 - t.ori) % 10;
+        res.t.nmn = Neumann::reflect(t.nmn);
+        break;
+    case 2:
+        res.att_x = att_x ^ wx;
+        res.att_y = att_y ^ wy;
+        res.t.ori = (t.ori + 5) % 10;
+        res.t.nmn = t.nmn;
+        break;
+    case 3:
+        res.att_x = att_y ^ wy;
+        res.att_y = att_x ^ wx;
+        res.t.ori = (15 - t.ori) % 10;
+        res.t.nmn = Neumann::reflect(t.nmn);
+        break;
+    default:
+        break; // TODO: throw
+    }
+    return res;
+}
+
+const GSCellDef gcd[8] = {
     {9, 2, 2, {
         {{5, Neumann::M},  0, 0},
         {{3, Neumann::KJ}, 0, 0},

@@ -33,6 +33,7 @@
 #include "celldrawer.h"
 #include "dimensions.h"
 #include "engine/universe.h"
+#include "engine/deflate.h"
 
 #include <QDebug>
 #include <QFile>
@@ -48,12 +49,13 @@ AperyVPort::AperyVPort(QWidget *parent)
 
     m_cd = new CellDrawer(rd, this);
 
-    m_univ = new Universe(4, 0, 0, 2);
-    if(!m_univ->isValid())
+    auto gen = std::make_unique<Deflate3>(4, 0, 0, 2);
+    m_univ = new Universe(std::move(gen));
+    if(!m_univ->valid())
         return;
     for(int i=-21; i<21; i+=3)
         for(int j=-21; j<21; j+=3)
-            m_univ->resolveCell(i, j);
+            m_univ->resolve(i, j);
 }
 
 bool AperyVPort::loadImage(const QString &file)
@@ -61,7 +63,7 @@ bool AperyVPort::loadImage(const QString &file)
     QPixmap px(file);
     if(px.isNull())
         return false;
-    m_rl->load(px, 2);
+    m_rl->load(px, 1);//2);
     update();
     return true;
 }
@@ -96,7 +98,7 @@ AperyVPort::~AperyVPort()
 void AperyVPort::paintEvent(QPaintEvent *e)
 {
     Q_UNUSED(e);
-    if(!m_univ->isValid() || !m_cd->ready())
+    if(!m_univ->valid() || !m_cd->ready())
         return;
 
     QPainter p(this);
@@ -104,18 +106,18 @@ void AperyVPort::paintEvent(QPaintEvent *e)
     Range rx = m_univ->rangeX();
     Range ry = m_univ->rangeY();
 
-    for(int x: rx)
+    for (int x: rx)
     {
         WN wnx = m_univ->wnX(x);
-        for(int y: ry)
+        for (int y: ry)
         {
             WN wny = m_univ->wnY(y);
             quint8 ci = m_univ->at(x, y);
-            if(ci)
+            if (ci)
             {
-                if(m_cd->getRect(ci, o, wnx, wny).intersects(vp))
+                if (m_cd->getRect(ci, o, wnx, wny).intersects(vp))
                 {
-                    int s = m_hot ? m_cd->inCell(m_hp, ci, o, wnx, wny) : 0;
+                    int s = 0; //m_hot ? m_cd->inCell(m_hp, ci, o, wnx, wny) : 0;
                     m_cd->drawCell(p, ci, s, o, wnx, wny);
                 }
             }

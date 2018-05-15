@@ -23,35 +23,50 @@
 
 #ifndef TYPES_H
 #define TYPES_H
-typedef signed char int8;          /* 8 bit signed */
-typedef unsigned char uint8;       /* 8 bit unsigned */
-typedef short int16;               /* 16 bit signed */
-typedef unsigned short uint16;     /* 16 bit unsigned */
-typedef int int32;                 /* 32 bit signed */
-typedef unsigned int uint32;       /* 32 bit unsigned */
-typedef long long int64;           /* 64 bit signed */
-typedef unsigned long long uint64; /* 64 bit unsigned */
+
+#include <cstddef>
+#include <cstdint>
 
 struct WN
 {
-    int32 w;
-    int32 n;
+    int32_t w;
+    int32_t n;
+};
+
+struct WNPoint
+{
+    WN x;
+    WN y;
 };
 
 struct Range
 {
-    struct iter
+    struct iterator
     {
-        int32 i;
-        constexpr iter(int32 i_): i(i_) {}
-        iter& operator++() {i++; return *this;}
-        bool operator !=(const iter& o) const {return i != o.i;}
-        constexpr int32 operator*() const {return i;}
+        int32_t i;
+        constexpr iterator(int32_t i_): i(i_) {}
+        iterator& operator++() {i++; return *this;}
+        bool operator !=(const iterator& o) const {return i != o.i;}
+        constexpr int32_t operator*() const {return i;}
     };
-    int32 b;
-    int32 e;
-    iter begin() const {return b;}
-    iter end() const {return e;}
+
+    Range(): b(INT32_MAX), e(INT32_MIN + 1)
+    {
+    }
+
+    void extend(int32_t n)
+    {
+        if (n < b)
+            b = n;
+
+        if (n >= e)
+            e = n + 1;
+    }
+    iterator begin() const {return b;}
+    iterator end() const {return e;}
+
+    int32_t b;
+    int32_t e;
 };
 
 #endif // TYPES_H

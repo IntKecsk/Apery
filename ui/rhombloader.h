@@ -65,7 +65,7 @@ class RhombLoader : public QObject
 {
     Q_OBJECT
 public:
-    explicit RhombLoader(QObject *parent = 0);
+    explicit RhombLoader(QObject *parent = nullptr);
     ~RhombLoader();
     bool load(const QPixmap& src, int nstates);
     QImage dump(bool nmn);
@@ -76,9 +76,9 @@ signals:
 private:
     struct Impl;
 
-    template<template<typename> class TData>
+    template<template<typename> typename TData>
     bool doLoad(const QPixmap& src, const QSize& ssz, int nstates, bool dup);
-    template<template<typename> class TData>
+    template<template<typename> typename TData>
     QImage doDump(const QSize& ssz);
 
     Vectors m_vec;

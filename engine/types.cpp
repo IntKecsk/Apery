@@ -21,77 +21,80 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#include "storage.h"
+#include "types.h"
 #include <new>
+#include <stdexcept>
 
 template<typename T, size_t CS>
-BList<T, CS>::BList(): m_count(0), m_level(0)
+BList<T, CS>::BList(): m_count(0), m_gran(ITEM_NUM), m_level(0)
 {
-    m_bbr[0]=new uint8[CS];
+    m_bbr[0]=new Storage;
     m_back[0]=0;
 }
 
 template<typename T, size_t CS>
 BList<T, CS>::~BList()
 {
-    _deleteTree((void**)m_bbr[0], m_level);
+    _deleteTree(m_bbr[0], m_level);
 }
 
 template<typename T, size_t CS>
-void* BList<T, CS>::_at(size_t i)
+T& BList<T, CS>::at(size_t i)
 {
-    if(i>=m_count) return nullptr;
-    size_t idxs[m_level+1];
-    idxs[0]=i%ITEM_NUM;
-    i/=ITEM_NUM;
-    for(int k=1; k<=m_level; k++)
+    if (i >= m_count)
+        throw std::out_of_range("BList::at");
+    size_t gran = m_gran;
+    size_t idx = i / gran;
+    i %= gran;
+    Storage* node = m_bbr[0];
+    for (int k = 0; k < m_level; k++)
     {
-        idxs[k]=i%PTR_NUM;
-        i/=PTR_NUM;
+        node = node->sub[idx];
+        gran /= PTR_NUM;
+        idx = i / gran;
+        i %= gran;
     }
-    void** node = (void**)m_bbr[0];
-    for(int k=0; k<m_level; k++)
-    {
-        node = (void**)node[idxs[m_level-k]];
-    }
-    return (uint8*)node + idxs[0]*IS;
+    return node->data[i];
 }
 
 template<typename T, size_t CS>
-void* BList<T, CS>::push_back()
+T* BList<T, CS>::push_back()
 {
     size_t bk = m_back[m_level];
-    if(bk<ITEM_NUM)
+    if (bk < ITEM_NUM)
     {
         m_back[m_level]++;
         m_count++;
-        return &m_bbr[m_level][bk*IS];
+        return &m_bbr[m_level]->data[bk];
     }
     // Current chunk is full. Need to allocate new chunk
     // Find a chunk with free pointer
     int fl=-1;
-    uint8* chain;
-    for(int k=m_level-1; k>=0; k--)
+    Storage* chain;
+    for (int k = m_level - 1; k >= 0; k--)
     {
-        if(m_back[k]<PTR_NUM)
+        if(m_back[k] < PTR_NUM)
         {
             fl = k;
             break;
         }
     }
-    if(fl==-1)
+    if (fl == -1)
     {
         //need to increase root level
-        uint8* nr = new(std::nothrow) uint8[CS];
-        if(!nr) return nullptr;
+        Storage* nr = new(std::nothrow) Storage;
+        if(!nr)
+            return nullptr;
+
         chain = _prepareChain(m_level+1);
         if(!chain)
         {
             delete nr;
             return nullptr;
         }
-        *(void**)nr = m_bbr[0];
+        nr->sub[0] = m_bbr[0];
         m_level++;
+        m_gran *= PTR_NUM;
         m_bbr[0] = nr;
         m_back[0] = 1;
         fl=0;
@@ -101,60 +104,60 @@ void* BList<T, CS>::push_back()
         chain = _prepareChain(m_level-fl);
         if(!chain) return nullptr;
     }
-    void** ap = (void**)m_bbr[fl];
-    ap[m_back[fl]] = chain;
-    uint8* cur = chain;
+    Storage* ap = m_bbr[fl];
+    ap->sub[m_back[fl]] = chain;
+    Storage* cur = chain;
     m_back[fl]++;
-    for(int k=fl+1;k<=m_level;k++)
+    for (int k = fl + 1; k <= m_level; k++)
     {
         m_bbr[k]=cur;
         m_back[k]=1;
-        if(k<m_level) cur=*(uint8**)cur;
+        if(k < m_level) cur = cur->sub[0];
     }
     m_count++;
-    return m_bbr[m_level];
+    return &m_bbr[m_level]->data[0];
 }
 
 template<typename T, size_t CS>
-uint8* BList<T, CS>::_prepareChain(int n)
+typename BList<T, CS>::Storage* BList<T, CS>::_prepareChain(int n)
 {
-    uint8* root = nullptr;
+    Storage* root = nullptr;
     try
     {
         for(int i=0; i<n; i++)
         {
-            uint8* cur = new uint8[CS];
-            *(void**)cur = root;
+            Storage* cur = new Storage;
+            cur->sub[0] = root;
             root = cur;
         }
     }
-    catch(std::bad_alloc)
+    catch(const std::bad_alloc&)
     {
         //Allocation failed. It is needed to decompose the already built chain
         while(root)
         {
-            uint8* dd = root;
-            root=*(uint8**)root;
+            Storage* dd = root;
+            root = root->sub[0];
             delete dd;
-            return nullptr;
         }
+        return nullptr;
     }
     return root;
 }
 
 template<typename T, size_t CS>
-void BList<T, CS>::_deleteTree(void** root, int h)
+void BList<T, CS>::_deleteTree(Storage *root, int h)
 {
     if(h)
         for(size_t i=0;i<PTR_NUM;i++)
         {
-            _deleteTree((void**)root[i], h-1);
+            _deleteTree(root->sub[i], h-1);
         }
     delete root;
 }
 
-template class BList<int32>;
-template class BList<uint8>;
+template class BList<int32_t>;
+template class BList<uint8_t>;
 
 template class BList<innode>;
 template class BList<ebrick>;

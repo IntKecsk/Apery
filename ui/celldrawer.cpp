@@ -121,48 +121,6 @@ void CellDrawer::drawCell(QPainter& p, quint8 ci, int state, QPoint pt, WN x, WN
     drawCell(p, ci, state, pt + m_cg.xw*x.w + m_cg.xn*x.n + m_cg.yw*y.w + m_cg.yn*y.n);
 }
 
-namespace
-{
-
-uint8 nmn_reflect(uint8 in)
-{
-    return in ^ (((in + 1) & 2) ? 3 : 0);
-}
-
-CellTile _trans(const CellTile& def, uint8 co, uint8 wx, uint8 wy)
-{
-    CellTile res;
-    switch(co)
-    {
-    case 0:
-        res = def;
-        break;
-    case 1:
-        res.att_x = def.att_y;
-        res.att_y = def.att_x;
-        res.t.ori = (10-def.t.ori)%10;
-        res.t.nmn = nmn_reflect(def.t.nmn);
-        break;
-    case 2:
-        res.att_x = def.att_x^wx;
-        res.att_y = def.att_y^wy;
-        res.t.ori = (def.t.ori+5)%10;
-        res.t.nmn = def.t.nmn;
-        break;
-    case 3:
-        res.att_x = def.att_y^wy;
-        res.att_y = def.att_x^wx;
-        res.t.ori = (15-def.t.ori)%10;
-        res.t.nmn = nmn_reflect(def.t.nmn);
-        break;
-    default:
-        Q_UNREACHABLE();
-    }
-    return res;
-}
-
-} // namespace
-
 QPoint CellDrawer::_getAtt(const CellTile& td)
 {
     QPoint pt(0, 0);
@@ -192,10 +150,10 @@ QPoint CellDrawer::_getAtt(const CellTile& td)
 void CellDrawer::drawCell(QPainter& p, quint8 ci, int state, QPoint pt)
 {
     quint8 ct = (ci >> 2) & 7, co = ci & 3;
-    const GSCell& c = gcd[ct];
+    const GSCellDef& c = gcd[ct];
     for (int i = 0; i < c.num; i++)
     {
-        CellTile td_trans = _trans(c.tiles[i], co, c.width_x, c.width_y);
+        CellTile td_trans = c.tiles[i].trans(co, c.width_x, c.width_y);
         m_rd->drawRhomb(p, td_trans.t, (state >> i) & 1, pt + _getAtt(td_trans));
     }
 }
@@ -210,11 +168,11 @@ int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt, WN x, WN y)
 int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt)
 {
     quint8 ct = (ci >> 2) & 7, co = ci & 3;
-    const GSCell& c = gcd[ct];
+    const GSCellDef& c = gcd[ct];
     int r = 0;
     for(int i=0;i<c.num;i++)
     {
-        CellTile td_trans = _trans(c.tiles[i], co, c.width_x, c.width_y);
+        CellTile td_trans = c.tiles[i].trans(co, c.width_x, c.width_y);
         if (m_rd->inRhomb(n, td_trans.t,  pt + _getAtt(td_trans)))
             r |= (1 << i);
     }

@@ -21,13 +21,50 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef SUBST_H
-#define SUBST_H
+#ifndef DEFLATE_H
+#define DEFLATE_H
 
-#include "common/types.h"
+#include "universe.h"
 
-/** GS-tiles substitution table */
-extern const uint8 subst3[8][5][5];
+struct TagGrid
+{
+    Bilist<uint8_t> xos;
+    Bilist<uint8_t> yos;
+};
 
-#endif // SUBST_H
+class DeflateBase : public Generator
+{
+protected:
+    DeflateBase(uint8_t pivot, int32_t pivx, int32_t pivy, uint8_t strans):
+        m_pivx(pivx), m_pivy(pivy), m_pivot(pivot), m_strans(strans)
+    {
+    }
+
+    TagGrid m_os;
+    int32_t m_pivx;
+    int32_t m_pivy;
+    uint8_t m_pivot;
+    uint8_t m_strans;
+    //bool m_valid = true;
+};
+
+struct TagDeflate3;
+struct TagDeflate6;
+
+template<typename Tag>
+class Deflate : public DeflateBase
+{
+public:
+    Deflate(uint8_t pivot, int32_t pivx, int32_t pivy, uint8_t strans);
+    virtual bool init(CellField &cf, WNGrid &wn) override;
+    virtual uint8_t resolve(int x, int y, CellField &cg, WNGrid &wn) override;
+};
+
+extern template class Deflate<TagDeflate3>;
+//extern template class Deflate<TagDeflate6>;
+
+typedef Deflate<TagDeflate3> Deflate3;
+//typedef Deflate<TagDeflate6> Deflate6;
+
+#endif // DEFLATE_H
 

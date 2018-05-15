@@ -39,10 +39,10 @@ template<typename T>
 template<typename Fn, typename... Y>
 void Simple<T>::transform(Fn func, Simple<Y>&... out) const
 {
-    for (uint8 i = 0; i < 10; i++)
+    for (quint8 i = 0; i < 10; i++)
         func({i, 0}, w[i], out.w[i]...);
 
-    for (uint8 i = 0; i < 10; i++)
+    for (quint8 i = 0; i < 10; i++)
         func({i, 4}, n[i], out.n[i]...);
 }
 
@@ -67,9 +67,9 @@ template<typename T>
 template<typename Fn, typename... Y>
 void Neumann<T>::transform(Fn func, Neumann<Y>&... out) const
 {
-    for (uint8 i = 0; i < 7; i++)
+    for (quint8 i = 0; i < 7; i++)
     {
-        for (uint8 j = 0; j < 10; j++)
+        for (quint8 j = 0; j < 10; j++)
             func({j, i}, d[i][j], out.d[i][j]...);
     }
 }

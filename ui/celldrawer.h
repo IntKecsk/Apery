@@ -74,7 +74,7 @@ class CellDrawer : public QObject
 {
     Q_OBJECT
 public:
-    explicit CellDrawer(RhombDrawer *rdr, QObject *parent = 0);
+    explicit CellDrawer(RhombDrawer *rdr, QObject *parent = nullptr);
 
     bool ready() const;
 

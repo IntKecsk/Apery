@@ -25,6 +25,7 @@
 #define APERYWINDOW_H
 
 #include <QMainWindow>
+#include <QHash>
 
 class AperyVPort;
 
@@ -32,7 +33,7 @@ class AperyWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit AperyWindow(QWidget *parent = 0);
+    explicit AperyWindow(QWidget *parent = nullptr);
 public slots:
     void fileOpen();
     void fileOpenRecent();

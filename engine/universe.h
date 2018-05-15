@@ -24,69 +24,90 @@
 #ifndef UNIVERSE_H
 #define UNIVERSE_H
 
-#include "common/types.h"
-#include "storage.h"
+#include "cellfield.h"
+#include <memory>
 
+struct WNGrid
+{
+    Bilist<int32_t> xns;
+    Bilist<int32_t> yns;
 
+    WNPoint at(int x, int y)
+    {
+        auto xn = xns.at(x);
+        auto yn = yns.at(x);
+        return {{x - xn, xn}, {y - yn, yn}};
+    }
 
+    WN x(int i) const
+    {
+        auto xn = xns.at(i);
+        return {i - xn, xn};
+    }
 
-class NOBilist
+    WN y(int i) const
+    {
+        auto yn = yns.at(i);
+        return {i - yn, yn};
+    }
+};
+
+class Generator
 {
 public:
-    int32 getN(int index) const;
-    uint8 getO(int index) const;
-    int ubound() const {return m_nng_n.count();}
-    int lbound() const {return ~m_neg_n.count();}
-    NOBilist& append(int32 n, uint8 o);
-    NOBilist& prepend(int32 n, uint8 o);
-private:
-    BList<int32> m_nng_n; //Nonnegative
-    BList<uint8> m_nng_o;
-    BList<int32> m_neg_n; //Negative
-    BList<uint8> m_neg_o;
+    virtual uint8_t resolve(int x, int y, CellField& cf, WNGrid& wn) = 0;
+    virtual bool init(CellField& cg, WNGrid& wn) = 0;
+    virtual ~Generator() = 0;
 };
 
 class Universe
 {
 public:
-    Universe(uint8 pivot, int32 pivx, int32 pivy, quint8 strans);
-    uint8 at(int x, int y) const;
-    WN wnX(int x) const {return _getWN(m_nox, x);}
-    WN wnY(int y) const {return _getWN(m_noy, y);}
-    void resolveWN(int x, int y);
-    uint8 resolveCell(int x, int y);
-    Range rangeX() const {return Range{m_nox.lbound()+1, m_nox.ubound()};}
-    Range rangeY() const {return Range{m_noy.lbound()+1, m_noy.ubound()};}
-    bool isValid() const {return m_root;}
+    Universe(std::unique_ptr<Generator> gen): m_gen(std::move(gen))
+    {
+        m_valid = m_gen->init(m_cf, m_wn);
+    }
+
+    uint8_t at(int x, int y, uint32_t* states = nullptr) const
+    {
+        return m_cf.at(x, y, states);
+    }
+
+    uint8_t resolve(int x, int y)
+    {
+        return m_gen->resolve(x, y, m_cf, m_wn);
+    }
+
+    bool valid() const
+    {
+        return m_valid;
+    }
+
+    WN wnX(int i) const
+    {
+        return m_wn.x(i);
+    }
+
+    WN wnY(int i) const
+    {
+        return m_wn.y(i);
+    }
+
+    Range rangeX() const
+    {
+        return m_cf.rangeX();
+    }
+
+    Range rangeY() const
+    {
+        return m_cf.rangeY();
+    }
+
 private:
-    Universe(const Universe& o) = delete;
-    NOBilist m_nox; ///< X N and O
-    NOBilist m_noy; ///< Y N and O
-
-    int32 m_pivx; ///< Pivot X
-    int32 m_pivy; ///< Pivot Y
-    uint8 m_strans; ///< Substitution transformation
-
-    qtnode* m_root; ///< Quad-tree root
-    uint8 m_rlev; ///< Root level
-    int32 m_ux; ///< Lower x for region described by root
-    int32 m_uy; ///< Lower y for region described by root
-
-    /*
-    static constexpr int CH_SIZE = 29; ///< Cache chain capacity
-    qtnode* m_cchain[CH_SIZE]; ///< Cache chain
-    quint8 m_chl; ///< Current cache chain length
-    quint32 m_prind_x; ///< Previous relative index: x
-    quint32 m_prind_y; ///< Previous relative index: y
-    */
-    BList<ebrick> m_bricks;
-    BList<innode> m_innodes;
-    void _resolveWNCoord(NOBilist& wnl, int32 piv, NOBilist& sec, int32 spiv, int index);
-    void _setCell(int x, int y, uint8 ci);
-    WN _getWN(const NOBilist &wnl, int index) const;
-    innode* _getInNode();
-    ebrick* _getEBrick();
-    static uint8 _getSubst(uint8 ct, int x, int y, int lenx, int leny, uint8 ori);
+    CellField m_cf;
+    WNGrid m_wn;
+    std::unique_ptr<Generator> m_gen;
+    bool m_valid;
 };
 
 #endif // UNIVERSE_H

@@ -23,68 +23,106 @@
 
 #include "deflate.h"
 #include "cells.h"
+#include "templates.h"
 #include <cassert>
 
-constexpr int NN = 0;
-
-const uint8_t subst3[8][5][5] = {
+constexpr uint8_t subst3_arche[8][5][5] = {
     { //N
-        { 8, 17, 14, NN, NN},
-        {16,  2, 22, NN, NN},
-        {14, 23, 10, NN, NN},
-        {NN, NN, NN, NN, NN},
-        {NN, NN, NN, NN, NN}
+        {4,  9,  7},
+        {8,  1, 14},
+        {7, 15,  5}
     },
     { //W
-        { 8, 25, 28, 19, 31},
-        {24,  0, 16,  2, 26},
-        {29, 17, 14, 23, 10},
-        {18,  2, 22,  2, 26},
-        {30, 27, 10, 27,  6}
+        { 4, 17, 20, 11, 23},
+        {16,  0,  8,  1, 18},
+        {21,  9,  7, 15,  5},
+        {10,  1, 14,  1, 18},
+        {22, 19,  5, 19,  3}
     },
     { //V
-        { 4, 25, 28, 19, 31},
-        {24,  0, 16,  2, 26},
-        {29, 17, 14, 23, 10},
-        {18,  2, 22,  2, 26},
-        {30, 27, 10, 27,  6}
+        { 2, 17, 20, 11, 23},
+        {16,  0,  8,  1, 18},
+        {21,  9,  7, 15,  5},
+        {10,  1, 14,  1, 18},
+        {22, 19,  5, 19,  3}
     },
     { //O
-        { 4, 25,  8, 17, 14},
-        {24,  0, 16,  2, 22},
-        { 8, 17, 14, 23, 10},
-        {16,  2, 22,  2, 26},
-        {14, 23, 10, 27,  6}
+        { 2, 17,  4,  9,  7},
+        {16,  0,  8,  1, 14},
+        { 4,  9,  7, 15,  5},
+        { 8,  1, 14,  1, 18},
+        { 7, 15,  5, 19,  3}
     },
     { //S
-        { 8, 21, 12, 19, 31},
-        {24,  0, 18,  2, 26},
-        {29, 17, 30, 27, 10},
-        {NN, NN, NN, NN, NN},
-        {NN, NN, NN, NN, NN}
+        { 4, 13,  6, 11, 23},
+        {16,  0, 10,  1, 18},
+        {21,  9, 22, 19,  5}
     },
     { //F
-        { 8, 21, 12, 19, 31},
-        {24,  0, 18,  2, 26},
-        {29, 17, 30, 27,  6},
-        {NN, NN, NN, NN, NN},
-        {NN, NN, NN, NN, NN}
+        { 4, 13,  6, 11, 23},
+        {16,  0, 10,  1, 18},
+        {21,  9, 22, 19,  3}
     },
     { //B
-        { 8, 21, 12, 19, 31},
-        {20,  0, 18,  2, 26},
-        {12, 19, 10, 27, 6},
-        {NN, NN, NN, NN, NN},
-        {NN, NN, NN, NN, NN}
+        { 4, 13,  6, 11, 23},
+        {12,  0, 10,  1, 18},
+        { 6, 11,  5, 19,  3}
     },
     { //Q
-        { 4, 25,  8, 17, 14},
-        {24,  0, 16,  2, 22},
-        {29, 17, 14, 23, 10},
-        {18,  2, 22,  2, 26},
-        {30, 27, 10, 27,  6}
-    },
+        { 2, 17,  4,  9,  7},
+        {16,  0,  8,  1, 14},
+        {21,  9,  7, 15,  5},
+        {10,  1, 14,  1, 18},
+        {22, 19,  5, 19,  3}
+    }
 };
+
+static constexpr int width_to_len(int w)
+{
+    return 2*w - 1;
+}
+
+constexpr auto fill_subst3()
+{
+    std::array<std::array<std::array<uint8_t, 5>, 5>, Cell::NUM_TYPES> res{};
+    for (int i = 0; i < Cell::NUM_TYPES; i++)
+    {
+        auto archetype = Cell::archetype(i);
+        auto reflection = Cell::reflection(i);
+        const auto& base_src = cell_def_arche_base[archetype];
+        const auto& src = subst3_arche[archetype];
+        auto& dst = res[i];
+        auto lenx = width_to_len(base_src.width_x);
+        auto leny = width_to_len(base_src.width_y);
+        for (int y = 0; y < leny; y++)
+        {
+            for (int x = 0; x < lenx; x++)
+            {
+                switch (reflection)
+                {
+                case 0:
+                    dst[y][x] = src[y][x];
+                    break;
+                case 1:
+                    dst[x][y] = Cell::reflect_type(src[y][x], reflection);
+                    break;
+                case 2:
+                    dst[y][x] = Cell::reflect_type(src[leny-y-1][lenx-x-1], reflection);
+                    break;
+                case 3:
+                    dst[x][y] = Cell::reflect_type(src[leny-y-1][lenx-x-1], reflection);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+constexpr auto subst3 = fill_subst3();
 
 struct WNResArg
 {
@@ -99,7 +137,7 @@ struct DeflateImpl
     inline static int widthToLen(int w);
     inline static int ofsToLen(uint8_t ofs);
     inline static int getMeta(int c, int n, int ofs = 0);
-    inline static uint8_t getSubst(uint8_t ct, int x, int y, int lenx, int leny, uint8_t ori);
+    inline static uint8_t getSubst(uint8_t ct, int x, int y);
     inline static int diffn(int ofs);
     inline static void resolveWNCoord(int c, WNResArg& cur, WNResArg& oth, uint8_t strans);
 private:
@@ -109,7 +147,7 @@ private:
 template<>
 int DeflateImpl<TagDeflate3>::widthToLen(int w)
 {
-    return 2 * w - 1;
+    return width_to_len(w);
 }
 
 template<>
@@ -121,31 +159,13 @@ int DeflateImpl<TagDeflate3>::ofsToLen(uint8_t ofs)
 template<>
 int DeflateImpl<TagDeflate3>::getMeta(int c, int n, int ofs)
 {
-    return c - 2 * n - ofs % 2;
+    return c - 2*n - ofs%2;
 }
 
 template<>
-uint8_t DeflateImpl<TagDeflate3>::getSubst(uint8_t ct, int x, int y, int lenx, int leny, uint8_t ori)
+uint8_t DeflateImpl<TagDeflate3>::getSubst(uint8_t ct, int x, int y)
 {
-    uint8_t nci;
-    switch(ori)
-    {
-    case 0:
-        nci = subst3[ct][y][x];
-        break;
-    case 1:
-        nci = subst3[ct][x][y]^1;
-        break;
-    case 2:
-        nci = subst3[ct][leny-y-1][lenx-x-1]^2;
-        break;
-    case 3:
-        nci = subst3[ct][lenx-x-1][leny-y-1]^3;
-        break;
-    default: assert(false);
-    }
-    if(nci<16) nci &= -2;
-    return nci;
+    return subst3[ct][y][x];
 }
 
 template<>
@@ -223,22 +243,7 @@ template<typename Tag>
 Deflate<Tag>::Deflate(uint8_t pivot, int32_t pivx, int32_t pivy, uint8_t strans):
     DeflateBase(pivot, pivx, pivy, strans)
 {
-    // check pivot validity
-
-    /*m_root = _getEBrick();*/
-    /*m_root = rbr;
-    m_nx.append(0, 0).append(0, 1).append(1, 2);
-    //m_ny.append(0, 0).append(0, 1).append(1, 2);
-    if(lenx==5)
-        m_nx.append(1, 3).append(2, 4);
-    if(leny==5)
-        m_ny.append(1, 3).append(2, 4);
-    for(int x=0; x<lenx; x++)
-        for(int y=0; y<leny; y++)
-        {
-            rbr->ctypes[8*y+x] = _getSubst(ct, x, y, lenx, leny, ori) | 128;
-        }
-    */
+    //TODO: check pivot validity here
 }
 
 template<typename Tag>
@@ -249,23 +254,14 @@ bool Deflate<Tag>::init(CellField &cf, WNGrid &wn)
     if(m_strans > 3)
         return false;
 
-    uint8_t ct = (m_pivot >> 2) & 7;
-    uint8_t ori = (m_pivot & 3) ^ m_strans;
+    uint8_t super_cell = Cell::reflect_type(m_pivot, m_strans);
 
-    const GSCellDef& icd = gcd[ct];
-    int lenx, leny;
-    if(ori & 1)
-    {
-        lenx = Impl::widthToLen(icd.width_y);
-        leny = Impl::widthToLen(icd.width_x);
-    }
-    else
-    {
-        lenx = Impl::widthToLen(icd.width_x);
-        leny = Impl::widthToLen(icd.width_y);
-    }
+    const auto& icd = cell_def[super_cell];
 
-    if (Impl::getSubst(ct, m_pivx, m_pivy, lenx, leny, ori) != m_pivot)
+    int lenx = Impl::widthToLen(icd.width_x);
+    int leny = Impl::widthToLen(icd.width_y);
+
+    if (Impl::getSubst(super_cell, m_pivx, m_pivy) != m_pivot)
         return false;
 
     for (int x = 0; x < lenx; x++)
@@ -284,7 +280,7 @@ bool Deflate<Tag>::init(CellField &cf, WNGrid &wn)
     {
         for(int y=0; y<leny; y++)
         {
-            cf.setCell(x, y, Impl::getSubst(ct, x, y, lenx, leny, ori) | 128);
+            cf.setCell(x, y, Impl::getSubst(super_cell, x, y) | 128);
         }
     }
     return true;
@@ -297,7 +293,9 @@ uint8_t Deflate<Tag>::resolve(int x, int y, CellField &cg, WNGrid &wn)
 
     uint8_t ci = cg.at(x, y);
     if (ci)
+    {
         return ci & 31;
+    }
 
     WNResArg rax{m_pivx, wn.xns, m_os.xos};
     WNResArg ray{m_pivy, wn.yns, m_os.yos};
@@ -319,24 +317,12 @@ uint8_t Deflate<Tag>::resolve(int x, int y, CellField &cg, WNGrid &wn)
         mcy = -mcy;
     }
 
-    uint8_t pci = resolve(m_pivx + mcx, m_pivy + mcy, cg, wn);
+    uint8_t pci = Cell::reflect_type(resolve(m_pivx + mcx, m_pivy + mcy, cg, wn), m_strans);
 
-    uint8_t ct = pci >> 2, ori = pci & 3;
-    ori ^= m_strans;
+    const auto& icd = cell_def[pci];
 
-    const GSCellDef& icd = gcd[ct];
-    int lenx, leny;
-
-    if(ori & 1)
-    {
-        lenx = Impl::widthToLen(icd.width_y);
-        leny = Impl::widthToLen(icd.width_x);
-    }
-    else
-    {
-        lenx = Impl::widthToLen(icd.width_x);
-        leny = Impl::widthToLen(icd.width_y);
-    }
+    int lenx = Impl::widthToLen(icd.width_x);
+    int leny = Impl::widthToLen(icd.width_y);
 
     int bx = x - ox, by = y - oy;
 
@@ -344,7 +330,7 @@ uint8_t Deflate<Tag>::resolve(int x, int y, CellField &cg, WNGrid &wn)
     {
         for (int ix = 0; ix < lenx; ix++)
         {
-            uint8_t nci = Impl::getSubst(ct, ix, iy, lenx, leny, ori);
+            uint8_t nci = Impl::getSubst(pci, ix, iy);
             if(ix == ox && iy == oy) ci = nci;
             cg.setCell(bx + ix, by + iy, nci|128);
         }
@@ -354,5 +340,3 @@ uint8_t Deflate<Tag>::resolve(int x, int y, CellField &cg, WNGrid &wn)
 }
 
 template class Deflate<TagDeflate3>;
-
-

@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Apery
 TEMPLATE = app
-CONFIG += c++17
+CONFIG += c++17 warn_on
 
 SOURCES += main.cpp\
     tiling/cells.cpp \
@@ -26,13 +26,14 @@ SOURCES += main.cpp\
     ui/rhombloader.cpp
 
 HEADERS += \
-    tiling/types.h \
+    tiling/defs.h \
     tiling/cells.h \
     tiling/quadtree.h \
     tiling/lists.h \
     tiling/universe.h \
     tiling/deflate.h \
     tiling/cellfield.h \
+    tiling/templates.h \
     ui/aperyvport.h \
     ui/rhombdrawer.h \
     ui/celldrawer.h \

@@ -26,7 +26,7 @@
 
 #include <QObject>
 #include <QRect>
-#include "tiling/types.h"
+#include "tiling/defs.h"
 #include "dimensions.h"
 
 class QPainter;
@@ -54,10 +54,9 @@ class CellBounds
 public:
     void update(const Vectors& vec);
 
-    Q_DECL_RELAXED_CONSTEXPR const QRect& getRect(quint8 ci) const
+    constexpr const QRect& getRect(quint8 ci) const
     {
-        ci&=31;
-        return (ci<16) ? m_achir[ci>>1] : m_chir[ci-16];
+        return m_bytype[ci & 31];
     }
     constexpr const QRect& getRect(bool narx, bool nary) const
     {
@@ -65,8 +64,7 @@ public:
     }
 
 protected:
-    QRect m_achir[8];
-    QRect m_chir[16];
+    QRect m_bytype[Cell::NUM_TYPES];
     QRect m_wn[2][2];
 };
 

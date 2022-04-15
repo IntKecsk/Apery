@@ -49,7 +49,7 @@ AperyVPort::AperyVPort(QWidget *parent)
 
     m_cd = new CellDrawer(rd, this);
 
-    auto gen = std::make_unique<Deflate3>(4, 0, 0, 2);
+    auto gen = std::make_unique<Deflate3>(2, 0, 0, 2);
     m_univ = new Universe(std::move(gen));
     if(!m_univ->valid())
         return;

@@ -26,7 +26,7 @@
 
 #include <cstddef>
 
-#include "types.h"
+#include "defs.h"
 #include "quadtree.h"
 
 using std::size_t;

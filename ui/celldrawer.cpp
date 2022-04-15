@@ -26,39 +26,35 @@
 
 namespace
 {
-Coeffs cbAchiralProto[8] = {
+constexpr Coeffs cbOriginProto[Cell::NUM_TYPES] = {
     //o   i   d   o   i
-    { 0,  0, -1, -1, -1}, //0
-    { 0,  0, -1, -1, -1}, //2
-    { 0,  0, -1, -1, -1}, //4
-    {-1,  1,  0, -1, -1}, //6
-    { 0,  1,  0, -2, -1}, //8
-    {-1,  1,  0, -2, -1}, //10
-    {-1,  2,  0, -2,  0}, //12
-    {-1,  1,  0, -2,  0}  //14
+    { 0,  0, -1, -1, -1}, //N
+    { 0,  0, -1, -1, -1}, //N X
+    { 0,  0, -1, -1, -1}, //W
+    {-1,  1,  0, -1, -1}, //W X
+    { 0,  1,  0, -2, -1}, //V
+    {-1,  1,  0, -2, -1}, //V X
+    {-1,  2,  0, -2,  0}, //O
+    {-1,  1,  0, -2,  0}, //O X
+    { 0,  0, -1,  0, -1}, //S
+    { 0,  0, -1, -1, -1}, //S /
+    { 0,  0, -1,  0, -1}, //S X
+    { 0,  0, -1, -1, -1}, //S \`
+    { 0,  0, -1, -1, -1}, //F
+    { 0,  0, -1, -1, -1}, //F /
+    { 0,  1,  0,  0, -1}, //F X
+    { 0,  1,  0, -2, -1}, //F \`
+    { 0,  0, -1, -1, -1}, //B
+    { 0,  0, -1, -1, -1}, //B /
+    {-1,  2,  0,  0, -1}, //B X
+    {-1,  2,  0, -2, -1}, //B \`
+    { 0,  1,  0, -2, -1}, //Q
+    { 0,  1,  0, -2,  0}, //Q /
+    {-1,  1,  0, -2,  0}, //Q X
+    {-1,  1,  0, -2, -1}  //Q \`
 };
 
-Coeffs cbChiralProto[16] = {
-    //o   i   d   o   i
-    { 0,  0, -1,  0, -1}, //16
-    { 0,  0, -1, -1, -1}, //17
-    { 0,  0, -1,  0, -1}, //18
-    { 0,  0, -1, -1, -1}, //19
-    { 0,  0, -1, -1, -1}, //20
-    { 0,  0, -1, -1, -1}, //21
-    { 0,  1,  0,  0, -1}, //22
-    { 0,  1,  0, -2, -1}, //23
-    { 0,  0, -1, -1, -1}, //24
-    { 0,  0, -1, -1, -1}, //25
-    {-1,  2,  0,  0, -1}, //26
-    {-1,  2,  0, -2, -1}, //27
-    { 0,  1,  0, -2, -1}, //28
-    { 0,  1,  0, -2,  0}, //29
-    {-1,  1,  0, -2,  0}, //30
-    {-1,  1,  0, -2, -1}  //31
-};
-
-Coeffs cbSizeProto[8] = {
+constexpr Coeffs cbSizeProto[Cell::NUM_ARCHETYPES] = {
     {2, 4, 1, 2, 2},
     {1, 3, 2, 2, 2},
     {1, 2, 1, 4, 2},
@@ -90,11 +86,8 @@ QPoint CellGrid::point(WN x, WN y)
 
 void CellBounds::update(const Vectors &vec)
 {
-    for(int i=0; i<8; i++)
-        m_achir[i] = vec.rect(cbAchiralProto[i], cbSizeProto[i>>1]);
-
-    for(int i=0; i<16; i++)
-        m_chir[i] = vec.rect(cbChiralProto[i], cbSizeProto[4+(i>>2)]);
+    for (int i = 0; i < Cell::NUM_TYPES; i++)
+        m_bytype[i] = vec.rect(cbOriginProto[i], cbSizeProto[Cell::archetype(i)]);
 
     // TODO: fill general rectangles
 }
@@ -149,12 +142,10 @@ QPoint CellDrawer::_getAtt(const CellTile& td)
 
 void CellDrawer::drawCell(QPainter& p, quint8 ci, int state, QPoint pt)
 {
-    quint8 ct = (ci >> 2) & 7, co = ci & 3;
-    const GSCellDef& c = gcd[ct];
+    const auto& c =cell_def[ci & 31];
     for (int i = 0; i < c.num; i++)
     {
-        CellTile td_trans = c.tiles[i].trans(co, c.width_x, c.width_y);
-        m_rd->drawRhomb(p, td_trans.t, (state >> i) & 1, pt + _getAtt(td_trans));
+        m_rd->drawRhomb(p, c.tiles[i].t, (state >> i) & 1, pt + _getAtt(c.tiles[i]));
     }
 }
 
@@ -167,13 +158,11 @@ int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt, WN x, WN y)
 
 int CellDrawer::inCell(QPoint n, quint8 ci, QPoint pt)
 {
-    quint8 ct = (ci >> 2) & 7, co = ci & 3;
-    const GSCellDef& c = gcd[ct];
+    const auto& c = cell_def[ci & 31];
     int r = 0;
-    for(int i=0;i<c.num;i++)
+    for (int i = 0; i < c.num; i++)
     {
-        CellTile td_trans = c.tiles[i].trans(co, c.width_x, c.width_y);
-        if (m_rd->inRhomb(n, td_trans.t,  pt + _getAtt(td_trans)))
+        if (m_rd->inRhomb(n, c.tiles[i].t,  pt + _getAtt(c.tiles[i])))
             r |= (1 << i);
     }
     return r;

@@ -25,6 +25,8 @@
 #define APERY_CELLS_H
 
 #include <cstdint>
+#include <array>
+#include "defs.h"
 
 /** Tile description */
 struct Tile
@@ -36,23 +38,21 @@ struct Tile
 /** Tile as part of a GS cell */
 struct CellTile
 {
-    CellTile trans(uint8_t co, uint8_t wx, uint8_t wy) const;
-
     Tile t;
     uint8_t att_x; ///< X attachment point within a cell
     uint8_t att_y; ///< Y attachment point within a cell
 };
 
 /** GS-cell definition structure */
-struct GSCellDef
+struct CellDefinition
 {
     uint8_t num; ///< Number of tiles in the cell
     uint8_t width_x; ///< X width descriptor
     uint8_t width_y; ///< Y width descriptor
-    CellTile tiles[9]; ///< Tile descriptors
+    std::array<CellTile, Cell::MAX_TILES> tiles; ///< Tile descriptors
 };
 
 /** Specific GS-cell definitions */
-extern const GSCellDef gcd[8];
+extern const std::array<CellDefinition, Cell::NUM_TYPES> cell_def;
 
 #endif // CELLS_H

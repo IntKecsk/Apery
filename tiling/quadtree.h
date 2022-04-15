@@ -24,7 +24,7 @@
 #ifndef APERY_QUADTREE_H
 #define APERY_QUADTREE_H
 
-#include "types.h"
+#include "defs.h"
 
 /** base for all quad-tree nodes */
 struct qtnode {};

@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef APERY_TYPES_H
-#define APERY_TYPES_H
+#ifndef APERY_DEFS_H
+#define APERY_DEFS_H
 
 #include <cstddef>
 #include <cstdint>
@@ -68,6 +68,44 @@ struct Range
     int32_t b;
     int32_t e;
 };
+
+namespace Cell
+{
+    enum Type : uint8_t
+    {
+        N = 0,
+        W = 2,
+        V = 4,
+        O = 6,
+        S = 8,
+        F = 12,
+        B = 16,
+        Q = 20,
+    };
+
+    enum Limits
+    {
+        NUM_SYMMETRIC = 8,
+        NUM_TYPES = 24,
+        NUM_ARCHETYPES = 8,
+        MAX_TILES = 9
+    };
+
+    static constexpr uint8_t archetype(uint8_t type)
+    {
+        return type < NUM_SYMMETRIC ? type >> 1 : (type >> 2) + 2;
+    };
+
+    static constexpr uint8_t reflection(uint8_t type)
+    {
+        return type < NUM_SYMMETRIC ? (type & 1) << 1 : type & 3;
+    };
+
+    static constexpr uint8_t reflect_type(uint8_t type, uint8_t reflection)
+    {
+        return type < NUM_SYMMETRIC ? type ^ (reflection >> 1) : type ^ reflection;
+    }
+}
 
 #endif // TYPES_H
 

@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef DEFLATE_H
-#define DEFLATE_H
+#ifndef APERY_DEFLATE_H
+#define APERY_DEFLATE_H
 
 #include "universe.h"
 

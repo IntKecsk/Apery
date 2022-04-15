@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef APERY_TYPES_H
+#define APERY_TYPES_H
 
 #include <cstddef>
 #include <cstdint>

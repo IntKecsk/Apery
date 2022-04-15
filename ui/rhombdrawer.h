@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef RHOMBDRAWER_H
-#define RHOMBDRAWER_H
+#ifndef APERY_RHOMBDRAWER_H
+#define APERY_RHOMBDRAWER_H
 
 #include <QObject>
 #include <QBitmap>

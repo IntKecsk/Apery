@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef QUADTREE_H
-#define QUADTREE_H
+#ifndef APERY_QUADTREE_H
+#define APERY_QUADTREE_H
 
 #include "types.h"
 

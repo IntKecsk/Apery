@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef APERYWINDOW_H
-#define APERYWINDOW_H
+#ifndef APERY_APERYWINDOW_H
+#define APERY_APERYWINDOW_H
 
 #include <QMainWindow>
 #include <QHash>

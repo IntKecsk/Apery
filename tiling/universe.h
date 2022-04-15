@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef UNIVERSE_H
-#define UNIVERSE_H
+#ifndef APERY_UNIVERSE_H
+#define APERY_UNIVERSE_H
 
 #include "cellfield.h"
 #include <memory>

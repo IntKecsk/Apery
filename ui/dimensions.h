@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef DIMENSIONS_H
-#define DIMENSIONS_H
+#ifndef APERY_DIMENSIONS_H
+#define APERY_DIMENSIONS_H
 
 #include <QPoint>
 #include <QRect>

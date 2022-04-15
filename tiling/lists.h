@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef LISTS_H
-#define LISTS_H
+#ifndef APERY_LISTS_H
+#define APERY_LISTS_H
 
 #include <cstddef>
 

@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef CELLDRAWER_H
-#define CELLDRAWER_H
+#ifndef APERY_CELLDRAWER_H
+#define APERY_CELLDRAWER_H
 
 #include <QObject>
 #include <QRect>

@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef CELLFIELD_H
-#define CELLFIELD_H
+#ifndef APERY_CELLFIELD_H
+#define APERY_CELLFIELD_H
 
 #include "lists.h"
 

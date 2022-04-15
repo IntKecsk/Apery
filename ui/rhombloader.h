@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef RHOMBLOADER_H
-#define RHOMBLOADER_H
+#ifndef APERY_RHOMBLOADER_H
+#define APERY_RHOMBLOADER_H
 
 #include <QObject>
 #include <QImage>

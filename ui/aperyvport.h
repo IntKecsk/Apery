@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef APERYWGT_H
-#define APERYWGT_H
+#ifndef APERY_APERYWGT_H
+#define APERY_APERYWGT_H
 
 #include <QWidget>
 //#include <QOpenGLWidget>

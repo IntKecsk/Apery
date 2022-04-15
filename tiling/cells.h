@@ -21,8 +21,8 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef CELLS_H
-#define CELLS_H
+#ifndef APERY_CELLS_H
+#define APERY_CELLS_H
 
 #include <cstdint>
 

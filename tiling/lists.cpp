@@ -21,7 +21,7 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#include "types.h"
+#include "lists.h"
 #include <new>
 #include <stdexcept>
 

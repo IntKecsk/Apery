@@ -28,7 +28,7 @@
 #include <QImage>
 #include <memory>
 
-#include "common/cells.h"
+#include "tiling/cells.h"
 #include "dimensions.h"
 
 struct RhombDim

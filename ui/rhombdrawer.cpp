@@ -23,7 +23,7 @@
 
 #include <QPainter>
 
-#include "common/cells.h"
+#include "tiling/cells.h"
 #include "rhombdrawer.h"
 
 RhombDrawer::RhombDrawer(QObject *parent):

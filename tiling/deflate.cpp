@@ -22,7 +22,7 @@
 ************************************************************************/
 
 #include "deflate.h"
-#include "common/cells.h"
+#include "cells.h"
 #include <cassert>
 
 constexpr int NN = 0;

@@ -32,8 +32,8 @@
 #include "rhombdrawer.h"
 #include "celldrawer.h"
 #include "dimensions.h"
-#include "engine/universe.h"
-#include "engine/deflate.h"
+#include "tiling/universe.h"
+#include "tiling/deflate.h"
 
 #include <QDebug>
 #include <QFile>

@@ -26,7 +26,7 @@
 
 #include <QObject>
 #include <QRect>
-#include "common/types.h"
+#include "tiling/types.h"
 #include "dimensions.h"
 
 class QPainter;

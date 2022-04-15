@@ -25,7 +25,7 @@
 #include <cstring>
 
 #include "cellfield.h"
-#include "common/cells.h"
+#include "cells.h"
 #include "deflate.h"
 
 CellField::CellField(): //(uint8_t pivot, int32_t pivx, int32_t pivy, uint8_t strans):

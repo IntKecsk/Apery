@@ -21,12 +21,12 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#ifndef ENGINE_TYPES_H
-#define ENGINE_TYPES_H
+#ifndef LISTS_H
+#define LISTS_H
 
 #include <cstddef>
 
-#include "common/types.h"
+#include "types.h"
 #include "quadtree.h"
 
 using std::size_t;

@@ -24,7 +24,7 @@
 #ifndef CELLFIELD_H
 #define CELLFIELD_H
 
-#include "types.h"
+#include "lists.h"
 
 class CellField
 {

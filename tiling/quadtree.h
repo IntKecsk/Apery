@@ -24,7 +24,7 @@
 #ifndef QUADTREE_H
 #define QUADTREE_H
 
-#include  "common/types.h"
+#include "types.h"
 
 /** base for all quad-tree nodes */
 struct qtnode {};

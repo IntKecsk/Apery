@@ -13,32 +13,32 @@ TEMPLATE = app
 CONFIG += c++17
 
 SOURCES += main.cpp\
-    common/cells.cpp \
+    tiling/cells.cpp \
+    tiling/lists.cpp \
+    tiling/universe.cpp \
+    tiling/deflate.cpp \
+    tiling/cellfield.cpp \
     ui/aperyvport.cpp \
     ui/rhombdrawer.cpp \
     ui/celldrawer.cpp \
     ui/aperywindow.cpp \
     ui/dimensions.cpp \
-    ui/rhombloader.cpp \
-    engine/types.cpp \
-    engine/universe.cpp \
-    engine/deflate.cpp \
-    engine/cellfield.cpp
+    ui/rhombloader.cpp
 
 HEADERS += \
-    common/cells.h \
+    tiling/types.h \
+    tiling/cells.h \
+    tiling/quadtree.h \
+    tiling/lists.h \
+    tiling/universe.h \
+    tiling/deflate.h \
+    tiling/cellfield.h \
     ui/aperyvport.h \
     ui/rhombdrawer.h \
     ui/celldrawer.h \
-    common/types.h \
-    engine/quadtree.h \
     ui/aperywindow.h \
     ui/dimensions.h \
-    ui/rhombloader.h \
-    engine/types.h \
-    engine/universe.h \
-    engine/deflate.h \
-    engine/cellfield.h
+    ui/rhombloader.h
 
 RESOURCES += \
     rsrc/masks.qrc

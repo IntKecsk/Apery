@@ -22,7 +22,7 @@
 ************************************************************************/
 
 #include "deflate.h"
-#include "cells.h"
+#include "cell_tiles.h"
 #include "templates.h"
 #include <cassert>
 
@@ -82,7 +82,7 @@ static constexpr int width_to_len(int w)
     return 2*w - 1;
 }
 
-constexpr auto fill_subst3()
+static consteval auto fill_subst3()
 {
     std::array<std::array<std::array<uint8_t, 5>, 5>, Cell::NUM_TYPES> res{};
     for (int i = 0; i < Cell::NUM_TYPES; i++)

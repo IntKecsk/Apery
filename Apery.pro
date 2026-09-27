@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Apery
 TEMPLATE = app
-CONFIG += c++17 warn_on
+CONFIG += c++23 strict_c++ warn_on
 
 SOURCES += main.cpp\
     tiling/cells.cpp \

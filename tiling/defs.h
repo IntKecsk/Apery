@@ -26,6 +26,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <array>
 
 struct WN
 {
@@ -44,7 +45,7 @@ struct Range
     struct iterator
     {
         int32_t i;
-        constexpr iterator(int32_t i_): i(i_) {}
+        explicit constexpr iterator(int32_t i_): i(i_) {}
         iterator& operator++() {i++; return *this;}
         bool operator !=(const iterator& o) const {return i != o.i;}
         constexpr int32_t operator*() const {return i;}
@@ -62,8 +63,8 @@ struct Range
         if (n >= e)
             e = n + 1;
     }
-    iterator begin() const {return b;}
-    iterator end() const {return e;}
+    iterator begin() const {return iterator{b};}
+    iterator end() const {return iterator{e};}
 
     int32_t b;
     int32_t e;
@@ -88,22 +89,37 @@ namespace Cell
         NUM_SYMMETRIC = 8,
         NUM_TYPES = 24,
         NUM_ARCHETYPES = 8,
-        MAX_TILES = 9
+        MAX_TILES = 9 // TODO: move
     };
 
-    static constexpr uint8_t archetype(uint8_t type)
+    template<typename T>
+    using ArcheArray = std::array<T, NUM_ARCHETYPES>;
+
+    template<typename T>
+    using MetaArray = std::array<T, NUM_TYPES>;
+
+    using CellTypeSequence = std::make_integer_sequence<uint8_t, NUM_TYPES>;
+
+    constexpr uint8_t archetype(uint8_t type)
     {
         return type < NUM_SYMMETRIC ? type >> 1 : (type >> 2) + 2;
     };
 
-    static constexpr uint8_t reflection(uint8_t type)
+    constexpr uint8_t reflection(uint8_t type)
     {
         return type < NUM_SYMMETRIC ? (type & 1) << 1 : type & 3;
     };
 
-    static constexpr uint8_t reflect_type(uint8_t type, uint8_t reflection)
+    constexpr uint8_t reflect_type(uint8_t type, uint8_t reflection)
     {
         return type < NUM_SYMMETRIC ? type ^ (reflection >> 1) : type ^ reflection;
+    }
+
+    template<typename T, typename Fn, typename TSeq = CellTypeSequence>
+    consteval MetaArray<T> GenCellMeta(Fn&& fn) {
+        return [&fn]<uint8_t... I>(std::integer_sequence<uint8_t, I...>) consteval {
+            return MetaArray<T>{fn(archetype(I), reflection(I))...};
+        }(TSeq{});
     }
 }
 

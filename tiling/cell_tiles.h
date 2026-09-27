@@ -21,35 +21,36 @@
 * Author: Anton Sanarov <intkecsk@yandex.ru>                            *
 ************************************************************************/
 
-#include <QPainter>
+#ifndef APERY_CELL_TILES_H
+#define APERY_CELL_TILES_H
 
-#include "tiling/cell_tiles.h"
-#include "rhombdrawer.h"
+#include "defs.h"
 
-RhombDrawer::RhombDrawer(QObject *parent):
-    QObject(parent), m_dim(), m_mask(), m_pix(), m_vec()
+/** Tile description */
+struct Tile
 {
-}
+    uint8_t ori; ///< Tile orientation
+    uint8_t nmn; ///< von Neumann neighbourhood type
+};
 
-void RhombDrawer::updatePixmaps(const Vectors& vec, RhombDimSP dim, RhombMaskSP mask, RhombPixSP pix)
+/** Tile as part of a GS cell */
+struct CellTile
 {
-    if (vec != m_vec)
-    {
-        m_vec = vec;
-        emit dimChanged(vec);
-    }
-    m_dim = std::move(dim);
-    m_mask = std::move(mask);
-    m_pix = std::move(pix);
-}
+    Tile t;
+    uint8_t att_x; ///< X attachment point within a cell
+    uint8_t att_y; ///< Y attachment point within a cell
+};
 
-void RhombDrawer::drawRhomb(QPainter& p, Tile td, int state, QPoint pt)
+/** GS-cell definition structure */
+struct CellDefinition
 {
-    p.drawPixmap(pt + m_dim->get(td).topLeft(), m_pix->get(state, td));
-}
+    uint8_t num; ///< Number of tiles in the cell
+    uint8_t width_x; ///< X width descriptor
+    uint8_t width_y; ///< Y width descriptor
+    std::array<CellTile, Cell::MAX_TILES> tiles; ///< Tile descriptors
+};
 
-bool RhombDrawer::inRhomb(QPoint n, Tile td, QPoint pt)
-{
-    QRect r = m_dim->get(td).translated(pt);
-    return r.contains(n) && m_mask->get(td).pixelIndex(n - r.topLeft());
-}
+/** Specific GS-cell definitions */
+extern const std::array<CellDefinition, Cell::NUM_TYPES> cell_def;
+
+#endif // CELLS_H

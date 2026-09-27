@@ -13,6 +13,7 @@ This program is a cross-platform application for generating Penrose tilings and 
 * Support for kite and dart and pentagon Penrose tilings 
 
 ### Building
+TODO: upgrade instructions
 This program uses Qt5
 You can get the latest version of Qt at http://download.qt.io/official_releases/qt/
 

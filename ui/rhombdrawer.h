@@ -27,7 +27,7 @@
 #include <QObject>
 #include <QBitmap>
 
-#include "tiling/cells.h"
+#include "tiling/cell_tiles.h"
 #include "dimensions.h"
 #include "rhombloader.h"
 
